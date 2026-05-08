@@ -1,0 +1,6 @@
+/* Leaflet's default icon images break under Vite's asset hashing.
+   We use custom DivIcon markers throughout, so we just suppress the
+   broken image requests for the default icon. */
+.leaflet-default-icon-path {
+  background-image: none;
+}
