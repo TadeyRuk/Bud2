@@ -198,3 +198,17 @@ BEGIN
     description = EXCLUDED.description,
     updated_at = now();
 END $$;
+
+SELECT
+  count(*) AS seeded_nationwide_pet_reports
+FROM pets
+WHERE id IN (
+  SELECT (
+    substr(md5('bud-visible-report-' || seq), 1, 8) || '-' ||
+    substr(md5('bud-visible-report-' || seq), 9, 4) || '-' ||
+    substr(md5('bud-visible-report-' || seq), 13, 4) || '-' ||
+    substr(md5('bud-visible-report-' || seq), 17, 4) || '-' ||
+    substr(md5('bud-visible-report-' || seq), 21, 12)
+  )::uuid
+  FROM generate_series(1, 100) AS seq
+);

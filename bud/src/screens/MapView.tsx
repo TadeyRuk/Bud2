@@ -126,10 +126,8 @@ function PetMarkers({ onSelectPet }: MapViewProps) {
   const fetchPets = usePetStore((s) => s.fetchPets);
 
   useEffect(() => {
-    if (pets.length === 0) {
-      fetchPets(true);
-    }
-  }, [fetchPets, pets.length]);
+    fetchPets(true);
+  }, [fetchPets]);
 
   return (
     <>
