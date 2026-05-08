@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { PhoneFrame } from "./components/PhoneFrame";
 import { BottomNav, type TabId } from "./components/BottomNav";
 import { CommunityBoard } from "./screens/CommunityBoard";
@@ -7,7 +7,7 @@ import { PetDetail } from "./screens/PetDetail";
 import { ReportLostPet } from "./screens/ReportLostPet";
 import { Profile } from "./screens/Profile";
 import type { Pet } from "./data/pets";
-import { getPetById } from "./data/pets";
+import { usePets } from "./context/PetsContext";
 
 function AppHeader() {
   return (
@@ -50,7 +50,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("community");
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
 
-  const selectedPet = selectedPetId ? getPetById(selectedPetId) : undefined;
+  const { pets } = usePets();
+
+  const selectedPet = useMemo(() => {
+    return pets.find((p) => p.id === selectedPetId);
+  }, [pets, selectedPetId]);
 
   const openPet = useCallback((pet: Pet) => {
     setSelectedPetId(pet.id);

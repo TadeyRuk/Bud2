@@ -1,8 +1,9 @@
 import { useCallback, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import type { Pet } from "../data/pets";
-import { pets, STATIC_MAP_IMAGE_URL } from "../data/pets";
+import { STATIC_MAP_IMAGE_URL } from "../data/pets";
 import { StatusBadge } from "../components/StatusBadge";
+import { usePets } from "../context/PetsContext";
 
 type MapViewProps = {
   onSelectPet: (pet: Pet) => void;
@@ -13,6 +14,8 @@ const mapContainerStyle = { width: "100%", height: "100%" };
 const defaultCenter = { lat: 14.5995, lng: 120.9845 };
 
 function StaticMap({ onSelectPet }: MapViewProps) {
+  const { pets } = usePets();
+
   return (
     <div className="relative flex-1 min-h-0 w-full bg-bud-surface-low overflow-hidden">
       <div className="absolute inset-0 bg-[#e8e5dc]">
@@ -102,6 +105,7 @@ function StaticMap({ onSelectPet }: MapViewProps) {
 }
 
 function GoogleMapInner({ onSelectPet }: MapViewProps) {
+  const { pets } = usePets();
   const center = useMemo(() => defaultCenter, []);
 
   const onLoad = useCallback(() => {
@@ -165,7 +169,24 @@ function MapWithLoader({
 }
 
 export function MapView({ onSelectPet }: MapViewProps) {
+  const { loading, error } = usePets();
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-bud-bg font-body text-bud-text-muted">
+        Loading neighborhood map...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-bud-bg font-body text-red-500">
+        Error loading data: {error}
+      </div>
+    );
+  }
 
   if (apiKey) {
     return <MapWithLoader apiKey={apiKey} onSelectPet={onSelectPet} />;

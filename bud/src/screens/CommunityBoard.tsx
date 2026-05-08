@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Pet } from "../data/pets";
-import { pets } from "../data/pets";
+import { usePets } from "../context/PetsContext";
 import { StatusBadge } from "../components/StatusBadge";
 
 type CommunityBoardProps = {
@@ -9,6 +9,7 @@ type CommunityBoardProps = {
 };
 
 export function CommunityBoard({ onSelectPet, onHaveInfo }: CommunityBoardProps) {
+  const { pets, loading, error, submitReport } = usePets();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -20,7 +21,34 @@ export function CommunityBoard({ onSelectPet, onHaveInfo }: CommunityBoardProps)
         p.location.toLowerCase().includes(q) ||
         (p.breed?.toLowerCase().includes(q) ?? false)
     );
-  }, [query]);
+  }, [query, pets]);
+
+  const handleHaveInfo = async (pet: Pet) => {
+    // Simple prompt for demo purposes, could be a modal
+    const message = window.prompt(`Provide info about ${pet.name}:`, "");
+    if (message) {
+      const { success, error: submitError } = await submitReport({
+        pet_id: pet.id,
+        message,
+        reporter_name: 'Community User', // Placeholder
+      });
+
+      if (success) {
+        window.alert("Thank you! Your report has been logged.");
+        onHaveInfo(pet);
+      } else {
+        window.alert(`Error logging report: ${submitError}`);
+      }
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center font-body text-bud-text-muted">Finding local pets...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center font-body text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="px-4 pt-4 pb-2 space-y-5 transition-opacity duration-200">
@@ -136,7 +164,7 @@ export function CommunityBoard({ onSelectPet, onHaveInfo }: CommunityBoardProps)
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onHaveInfo(pet);
+                  handleHaveInfo(pet);
                 }}
                 className="w-full bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-3.5 rounded-xl transition-transform active:scale-[0.98]"
               >
