@@ -1,7 +1,7 @@
 export type PetStatus = "LOST" | "FOUND";
 export type PetType = "dog" | "cat" | "other";
 
-export type Pet = {
+export type LegacyPet = {
   id: string;
   name: string;
   breed?: string;
@@ -14,9 +14,7 @@ export type Pet = {
   date: string;
   image: string;
   description: string;
-  /** Pin position on static map (percent of container) */
   pin: { topPct: number; leftPct: number };
-  /** Optional lat/lng when using Google Maps */
   lat?: number;
   lng?: number;
 };
@@ -26,7 +24,7 @@ const MAP_IMG =
 
 export const STATIC_MAP_IMAGE_URL = MAP_IMG;
 
-export const pets: Pet[] = [
+export const DEMO_PETS: LegacyPet[] = [
   {
     id: "barnaby",
     name: "Barnaby",
@@ -86,6 +84,9 @@ export const pets: Pet[] = [
   },
 ];
 
-export function getPetById(id: string): Pet | undefined {
-  return pets.find((p) => p.id === id);
+export type Pet = LegacyPet;
+export const pets: Pet[] = DEMO_PETS;
+
+export function getPetById(id: string): LegacyPet | undefined {
+  return DEMO_PETS.find((p) => p.id === id);
 }
