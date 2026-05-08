@@ -1,18 +1,17 @@
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { Pet as LegacyPet } from "../data/pets";
-import { pets } from "../data/pets";
-import type { Pet as StorePet } from "../stores/petStore";
+import { usePetStore, type Pet } from "../stores/petStore";
 
 type MapViewProps = {
-  onSelectPet: (pet: StorePet) => void;
+  onSelectPet: (pet: Pet) => void;
 };
 
 const DEFAULT_CENTER: [number, number] = [14.5995, 120.9845];
 const DEFAULT_ZOOM = 14;
 
-function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
+function PinMarkerHtml({ pet }: { pet: Pet }) {
   const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
 
   return (
@@ -31,7 +30,7 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
           color: "white",
         }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
         </svg>
         <div
@@ -45,7 +44,7 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
             background: bubbleColor,
             borderRadius: 2,
           }}
-          aria-hidden
+          aria-hidden="true"
         />
       </div>
       <div
@@ -63,8 +62,8 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
         }}
       >
         <img
-          src={pet.image}
-          alt=""
+          src={pet.image_url ?? ""}
+          alt={`Photo of ${pet.name}`}
           style={{
             width: 40,
             height: 40,
@@ -108,7 +107,7 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
   );
 }
 
-function makePinIcon(pet: LegacyPet) {
+function makePinIcon(pet: Pet) {
   const html = renderToStaticMarkup(<PinMarkerHtml pet={pet} />);
   return divIcon({
     html,
@@ -119,19 +118,24 @@ function makePinIcon(pet: LegacyPet) {
 }
 
 function PetMarkers({ onSelectPet }: MapViewProps) {
+  const pets = usePetStore((s) => s.pets);
+  const mappedPets = useMemo(
+    () => pets.filter((p) => p.lat != null && p.lng != null),
+    [pets],
+  );
+  const icons = useMemo(() => mappedPets.map((p) => makePinIcon(p)), [mappedPets]);
+
   return (
     <>
-      {pets
-        .filter((p) => p.lat != null && p.lng != null)
-        .map((pet) => (
-          <Marker
-            key={pet.id}
-            position={[pet.lat!, pet.lng!]}
-            icon={makePinIcon(pet)}
-            eventHandlers={{ click: () => onSelectPet(pet as unknown as StorePet) }}
-            title={pet.name}
-          />
-        ))}
+      {mappedPets.map((pet, i) => (
+        <Marker
+          key={pet.id}
+          position={[pet.lat!, pet.lng!]}
+          icon={icons[i]}
+          eventHandlers={{ click: () => onSelectPet(pet) }}
+          title={pet.name}
+        />
+      ))}
     </>
   );
 }
@@ -150,7 +154,6 @@ export function MapView({ onSelectPet }: MapViewProps) {
         zoom={DEFAULT_ZOOM}
         style={{ width: "100%", height: "100%" }}
         zoomControl={false}
-        attributionControl={false}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
