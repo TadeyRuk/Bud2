@@ -1,6 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import type { Pet } from '../data/pets';
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
+import { pets as demoPets, type Pet } from "../data/pets";
+
+type NewLostPet = {
+  name: string;
+  type: Pet["type"];
+  location: string;
+  description: string;
+  image?: string;
+};
 
 interface PetsContextType {
   pets: Pet[];
@@ -15,6 +23,7 @@ interface PetsContextType {
     lat?: number;
     lng?: number;
   }) => Promise<{ success: boolean; error?: string }>;
+  submitLostPet: (pet: NewLostPet) => Promise<{ success: boolean; error?: string }>;
 }
 
 const PetsContext = createContext<PetsContextType | undefined>(undefined);
@@ -27,10 +36,16 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
   const fetchPets = useCallback(async () => {
     try {
       setLoading(true);
+      if (!isSupabaseConfigured || !supabase) {
+        setPets(demoPets);
+        setError(null);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
-        .from('pets')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("pets")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (fetchError) throw fetchError;
 
@@ -58,7 +73,8 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
       setPets(mappedPets);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching pets:', err);
+      console.error("Error fetching pets:", err);
+      setPets(demoPets);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -78,20 +94,59 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
     lng?: number;
   }) => {
     try {
+      if (!isSupabaseConfigured || !supabase) {
+        return { success: false, error: "Supabase is not configured." };
+      }
+
       const { error: reportError } = await supabase
-        .from('reports')
+        .from("reports")
         .insert([report]);
 
       if (reportError) throw reportError;
       return { success: true };
     } catch (err: any) {
-      console.error('Error submitting report:', err);
+      console.error("Error submitting report:", err);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const submitLostPet = async (pet: NewLostPet) => {
+    try {
+      if (!isSupabaseConfigured || !supabase) {
+        return { success: false, error: "Supabase is not configured." };
+      }
+
+      const { error: petError } = await supabase.from("pets").insert([
+        {
+          name: pet.name || "Unknown pet",
+          type: pet.type,
+          location: pet.location,
+          description: pet.description,
+          image:
+            pet.image ||
+            "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80",
+          color: "Unknown",
+          fur_color: "Unknown",
+          gender: "Unknown",
+          status: "LOST",
+          date: "Just now",
+          pin: { topPct: 50, leftPct: 50 },
+        },
+      ]);
+
+      if (petError) throw petError;
+      await fetchPets();
+      return { success: true };
+    } catch (err: any) {
+      console.error("Error submitting lost pet:", err);
       return { success: false, error: err.message };
     }
   };
 
   return (
-    <PetsContext.Provider value={{ pets, loading, error, refreshPets: fetchPets, submitReport }}>
+    <PetsContext.Provider
+      value={{ pets, loading, error, refreshPets: fetchPets, submitReport, submitLostPet }}
+    >
       {children}
     </PetsContext.Provider>
   );
@@ -100,7 +155,7 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
 export function usePets() {
   const context = useContext(PetsContext);
   if (context === undefined) {
-    throw new Error('usePets must be used within a PetsProvider');
+    throw new Error("usePets must be used within a PetsProvider");
   }
   return context;
 }

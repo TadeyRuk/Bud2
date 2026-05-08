@@ -1,11 +1,14 @@
 import { useRef, useState } from "react";
+import { usePets } from "../context/PetsContext";
 
 export function ReportLostPet() {
+  const { submitLostPet } = usePets();
   const [petType, setPetType] = useState<"dog" | "cat" | "other">("dog");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [traits, setTraits] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -18,11 +21,29 @@ export function ReportLostPet() {
     setPreview(url);
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    window.alert(
-      "Thank you — your report was saved locally for this demo. In a real app this would notify the community."
-    );
+    setSubmitting(true);
+
+    const { success, error } = await submitLostPet({
+      name: name.trim(),
+      type: petType,
+      location: location.trim(),
+      description: traits.trim(),
+    });
+
+    setSubmitting(false);
+
+    if (!success) {
+      window.alert(`Could not save report: ${error}`);
+      return;
+    }
+
+    setName("");
+    setLocation("");
+    setTraits("");
+    setPreview(null);
+    window.alert("Thank you. Your lost pet report has been saved.");
   }
 
   return (
@@ -141,16 +162,17 @@ export function ReportLostPet() {
             value={traits}
             onChange={(e) => setTraits(e.target.value)}
             rows={4}
-            placeholder="Collar color, markings, behavior, anything that helps identify them…"
+            placeholder="Collar color, markings, behavior, anything that helps identify them..."
             className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30 resize-none"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-4 rounded-xl shadow-ambient active:scale-[0.99] transition-transform"
+          disabled={submitting || !location.trim() || !traits.trim()}
+          className="w-full bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-4 rounded-xl shadow-ambient active:scale-[0.99] transition-transform disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Submit Report
+          {submitting ? "Submitting..." : "Submit Report"}
         </button>
       </form>
     </div>
