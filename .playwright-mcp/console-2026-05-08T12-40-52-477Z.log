@@ -1,0 +1,79 @@
+[     929ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[     934ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   33028ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   33031ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   33675ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   33677ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   33846ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   33849ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   33994ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   33996ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   34137ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   34139ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   88613ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   88615ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   89137ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   89140ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   89290ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   89294ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5174/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5174/src/lib/supabase.ts:5:25
+[   92412ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   92416ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5173/src/lib/supabase.ts:5:25
+[   93712ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   93714ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5173/src/lib/supabase.ts:5:25
+[   93848ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   93851ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5173/src/lib/supabase.ts:5:25
+[   93982ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[   93984ms] Error: supabaseUrl is required.
+    at validateSupabaseUrl (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20176:26)
+    at new SupabaseClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20381:21)
+    at createClient (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:20592:10)
+    at http://localhost:5173/src/lib/supabase.ts:5:25
+[  150431ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
