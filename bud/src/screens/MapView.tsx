@@ -1,18 +1,18 @@
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { Pet } from "../data/pets";
+import type { Pet as LegacyPet } from "../data/pets";
 import { pets } from "../data/pets";
+import type { Pet as StorePet } from "../stores/petStore";
 
 type MapViewProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSelectPet: (pet: any) => void;
+  onSelectPet: (pet: StorePet) => void;
 };
 
 const DEFAULT_CENTER: [number, number] = [14.5995, 120.9845];
 const DEFAULT_ZOOM = 14;
 
-function PinMarkerHtml({ pet }: { pet: Pet }) {
+function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
   const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
 
   return (
@@ -108,7 +108,7 @@ function PinMarkerHtml({ pet }: { pet: Pet }) {
   );
 }
 
-function makePinIcon(pet: Pet) {
+function makePinIcon(pet: LegacyPet) {
   const html = renderToStaticMarkup(<PinMarkerHtml pet={pet} />);
   return divIcon({
     html,
@@ -128,7 +128,7 @@ function PetMarkers({ onSelectPet }: MapViewProps) {
             key={pet.id}
             position={[pet.lat!, pet.lng!]}
             icon={makePinIcon(pet)}
-            eventHandlers={{ click: () => onSelectPet(pet) }}
+            eventHandlers={{ click: () => onSelectPet(pet as unknown as StorePet) }}
             title={pet.name}
           />
         ))}
