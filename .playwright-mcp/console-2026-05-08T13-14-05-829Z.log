@@ -1,0 +1,2 @@
+[     148ms] The requested module '/src/lib/supabase.ts' does not provide an export named 'isSupabaseConfigured'
+[   17977ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102

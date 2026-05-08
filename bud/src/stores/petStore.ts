@@ -47,7 +47,6 @@ function mapDemoPets(): Pet[] {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     date: d.date,
-    pin: d.pin,
   }));
 }
 

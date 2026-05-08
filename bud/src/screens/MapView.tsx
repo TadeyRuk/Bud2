@@ -11,6 +11,8 @@ type MapViewProps = {
 
 const DEFAULT_CENTER: [number, number] = [12.8797, 121.7740];
 const DEFAULT_ZOOM = 5;
+const FALLBACK_MARKER_CENTER: [number, number] = [14.5995, 120.9842];
+const FALLBACK_MARKER_SPACING = 0.006;
 
 function PinMarkerHtml({ pet }: { pet: StorePet }) {
   const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
@@ -34,7 +36,7 @@ function PinMarkerHtml({ pet }: { pet: StorePet }) {
           color: "white",
         }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
         </svg>
         <div
@@ -48,7 +50,7 @@ function PinMarkerHtml({ pet }: { pet: StorePet }) {
             background: bubbleColor,
             borderRadius: 2,
           }}
-          aria-hidden
+          aria-hidden="true"
         />
       </div>
       <div
@@ -121,6 +123,19 @@ function makePinIcon(pet: StorePet) {
   });
 }
 
+function getMarkerPosition(pet: StorePet, index: number): [number, number] {
+  if (pet.lat != null && pet.lng != null) {
+    return [pet.lat, pet.lng];
+  }
+
+  const row = Math.floor(index / 3) - 1;
+  const col = (index % 3) - 1;
+  return [
+    FALLBACK_MARKER_CENTER[0] + row * FALLBACK_MARKER_SPACING,
+    FALLBACK_MARKER_CENTER[1] + col * FALLBACK_MARKER_SPACING,
+  ];
+}
+
 function PetMarkers({ onSelectPet }: MapViewProps) {
   const pets = usePetStore((s) => s.pets);
   const fetchPets = usePetStore((s) => s.fetchPets);
@@ -131,17 +146,15 @@ function PetMarkers({ onSelectPet }: MapViewProps) {
 
   return (
     <>
-      {pets
-        .filter((p) => p.lat != null && p.lng != null)
-        .map((pet) => (
-          <Marker
-            key={pet.id}
-            position={[pet.lat!, pet.lng!]}
-            icon={makePinIcon(pet)}
-            eventHandlers={{ click: () => onSelectPet(pet) }}
-            title={pet.name}
-          />
-        ))}
+      {pets.map((pet, index) => (
+        <Marker
+          key={pet.id}
+          position={getMarkerPosition(pet, index)}
+          icon={makePinIcon(pet)}
+          eventHandlers={{ click: () => onSelectPet(pet) }}
+          title={pet.name}
+        />
+      ))}
     </>
   );
 }
@@ -160,7 +173,6 @@ export function MapView({ onSelectPet }: MapViewProps) {
         zoom={DEFAULT_ZOOM}
         style={{ width: "100%", height: "100%" }}
         zoomControl={false}
-        attributionControl={false}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

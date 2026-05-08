@@ -1,0 +1,27 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e10]: Bud
+    - button "Notifications" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+  - generic [ref=e177]:
+    - img [ref=e179]
+    - heading "Welcome to Bud" [level=1] [ref=e181]
+    - paragraph [ref=e182]: Sign in to report lost pets, track your reports, and help your community.
+    - button "Sign In" [ref=e183] [cursor=pointer]
+  - navigation "Main" [ref=e83]:
+    - generic [ref=e84]:
+      - button "Community board" [ref=e86] [cursor=pointer]:
+        - img [ref=e87]
+        - generic [ref=e89]: Community
+      - button "Map view" [ref=e91] [cursor=pointer]:
+        - img [ref=e92]
+        - generic [ref=e94]: Map
+      - generic [ref=e95]:
+        - button "Report lost pet" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+        - generic [ref=e99]: Report
+      - button "Profile" [active] [ref=e101] [cursor=pointer]:
+        - img [ref=e102]
+        - generic [ref=e104]: Profile

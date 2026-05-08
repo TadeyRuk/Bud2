@@ -1,0 +1,63 @@
+- generic [ref=e4]:
+  - generic [ref=e185]:
+    - generic [ref=e186]:
+      - heading "Community Board" [level=1] [ref=e187]:
+        - text: Community
+        - text: Board
+      - paragraph [ref=e188]: Recent alerts and sightings near you.
+    - generic [ref=e189]:
+      - img [ref=e190]
+      - searchbox "Search pets" [ref=e192]
+    - generic [ref=e193]:
+      - article [ref=e194]:
+        - button "Lost Barnaby Golden Retriever · Red Collar Last seen Near San Park Today · 0.8 mi away" [ref=e195] [cursor=pointer]:
+          - generic [ref=e198]: Lost
+          - generic [ref=e199]:
+            - generic [ref=e200]:
+              - heading "Barnaby" [level=2] [ref=e201]
+              - paragraph [ref=e202]: Golden Retriever · Red Collar
+            - generic [ref=e203]:
+              - img [ref=e204]
+              - generic [ref=e207]:
+                - paragraph [ref=e208]: Last seen
+                - paragraph [ref=e209]: Near San Park
+                - paragraph [ref=e210]: Today · 0.8 mi away
+        - button "I Have Info" [ref=e212] [cursor=pointer]
+      - article [ref=e213]:
+        - button "Found Orange Tabby Cat Orange Last seen Key Location Street 2 hrs ago" [ref=e214] [cursor=pointer]:
+          - generic [ref=e217]: Found
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - heading "Orange Tabby Cat" [level=2] [ref=e220]
+              - paragraph [ref=e221]: Orange
+            - generic [ref=e222]:
+              - img [ref=e223]
+              - generic [ref=e226]:
+                - paragraph [ref=e227]: Last seen
+                - paragraph [ref=e228]: Key Location Street
+                - paragraph [ref=e229]: 2 hrs ago
+        - button "I Have Info" [ref=e231] [cursor=pointer]
+      - article [ref=e232]:
+        - button "Found Luna Domestic Shorthair · Black Last seen Reunited with family 14 hrs search" [ref=e233] [cursor=pointer]:
+          - generic [ref=e236]: Found
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - heading "Luna" [level=2] [ref=e239]
+              - paragraph [ref=e240]: Domestic Shorthair · Black
+            - generic [ref=e241]:
+              - img [ref=e242]
+              - generic [ref=e245]:
+                - paragraph [ref=e246]: Last seen
+                - paragraph [ref=e247]: Reunited with family
+                - paragraph [ref=e248]: 14 hrs search
+        - button "I Have Info" [ref=e250] [cursor=pointer]
+  - generic [ref=e319]:
+    - banner [ref=e320]:
+      - generic [ref=e321]:
+        - button "Go back" [ref=e322] [cursor=pointer]:
+          - img [ref=e323]
+        - heading "Notifications" [level=1] [ref=e325]
+    - generic [ref=e327]:
+      - img [ref=e328]
+      - paragraph [ref=e330]: All caught up!
+      - paragraph [ref=e331]: You'll see notifications here when there's activity on your reports.
