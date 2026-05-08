@@ -1,18 +1,23 @@
+import { useEffect } from "react";
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { usePetStore, type Pet } from "../stores/petStore";
+import type { Pet as StorePet } from "../stores/petStore";
+import { usePetStore } from "../stores/petStore";
 
 type MapViewProps = {
   onSelectPet: (pet: Pet) => void;
 };
 
-const DEFAULT_CENTER: [number, number] = [14.5995, 120.9845];
-const DEFAULT_ZOOM = 14;
+const DEFAULT_CENTER: [number, number] = [12.8797, 121.7740];
+const DEFAULT_ZOOM = 5;
 
-function PinMarkerHtml({ pet }: { pet: Pet }) {
+function PinMarkerHtml({ pet }: { pet: StorePet }) {
   const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
+  const imageUrl =
+    pet.image_url ||
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23e8e5dc'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -62,8 +67,8 @@ function PinMarkerHtml({ pet }: { pet: Pet }) {
         }}
       >
         <img
-          src={pet.image_url ?? ""}
-          alt={`Photo of ${pet.name}`}
+          src={imageUrl}
+          alt=""
           style={{
             width: 40,
             height: 40,
@@ -107,7 +112,7 @@ function PinMarkerHtml({ pet }: { pet: Pet }) {
   );
 }
 
-function makePinIcon(pet: Pet) {
+function makePinIcon(pet: StorePet) {
   const html = renderToStaticMarkup(<PinMarkerHtml pet={pet} />);
   return divIcon({
     html,
@@ -119,23 +124,25 @@ function makePinIcon(pet: Pet) {
 
 function PetMarkers({ onSelectPet }: MapViewProps) {
   const pets = usePetStore((s) => s.pets);
-  const mappedPets = useMemo(
-    () => pets.filter((p) => p.lat != null && p.lng != null),
-    [pets],
-  );
-  const icons = useMemo(() => mappedPets.map((p) => makePinIcon(p)), [mappedPets]);
+  const fetchPets = usePetStore((s) => s.fetchPets);
+
+  useEffect(() => {
+    fetchPets(true);
+  }, [fetchPets]);
 
   return (
     <>
-      {mappedPets.map((pet, i) => (
-        <Marker
-          key={pet.id}
-          position={[pet.lat!, pet.lng!]}
-          icon={icons[i]}
-          eventHandlers={{ click: () => onSelectPet(pet) }}
-          title={pet.name}
-        />
-      ))}
+      {pets
+        .filter((p) => p.lat != null && p.lng != null)
+        .map((pet) => (
+          <Marker
+            key={pet.id}
+            position={[pet.lat!, pet.lng!]}
+            icon={makePinIcon(pet)}
+            eventHandlers={{ click: () => onSelectPet(pet) }}
+            title={pet.name}
+          />
+        ))}
     </>
   );
 }

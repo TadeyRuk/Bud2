@@ -16,6 +16,8 @@ export type LegacyPet = {
   description: string;
   lat?: number;
   lng?: number;
+  ownerName?: string;
+  ownerContact?: string;
 };
 
 export const DEMO_PETS: LegacyPet[] = [
