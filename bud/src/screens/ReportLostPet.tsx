@@ -230,7 +230,7 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
             value={traits}
             onChange={(e) => setTraits(e.target.value)}
             rows={4}
-            placeholder="Collar color, markings, behavior, anything that helps identify them…"
+            placeholder="Collar color, markings, behavior, anything that helps identify them..."
             className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30 resize-none"
           />
         </div>

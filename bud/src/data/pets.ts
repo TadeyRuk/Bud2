@@ -17,6 +17,8 @@ export type LegacyPet = {
   pin: { topPct: number; leftPct: number };
   lat?: number;
   lng?: number;
+  ownerName?: string;
+  ownerContact?: string;
 };
 
 const MAP_IMG =
