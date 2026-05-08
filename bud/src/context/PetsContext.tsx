@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { isSupabaseConfigured, supabase } from "../lib/supabase";
+import { supabaseConfigured, supabase } from "../lib/supabase";
 import { pets as demoPets, type Pet } from "../data/pets";
 
 type NewLostPet = {
@@ -36,7 +36,7 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
   const fetchPets = useCallback(async () => {
     try {
       setLoading(true);
-      if (!isSupabaseConfigured || !supabase) {
+      if (!supabaseConfigured || !supabase) {
         setPets(demoPets);
         setError(null);
         return;
@@ -94,7 +94,7 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
     lng?: number;
   }) => {
     try {
-      if (!isSupabaseConfigured || !supabase) {
+      if (!supabaseConfigured || !supabase) {
         return { success: false, error: "Supabase is not configured." };
       }
 
@@ -112,7 +112,7 @@ export function PetsProvider({ children }: { children: React.ReactNode }) {
 
   const submitLostPet = async (pet: NewLostPet) => {
     try {
-      if (!isSupabaseConfigured || !supabase) {
+      if (!supabaseConfigured || !supabase) {
         return { success: false, error: "Supabase is not configured." };
       }
 

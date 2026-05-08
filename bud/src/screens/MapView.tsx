@@ -1,19 +1,22 @@
+import { useEffect } from "react";
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { Pet as LegacyPet } from "../data/pets";
-import { pets } from "../data/pets";
 import type { Pet as StorePet } from "../stores/petStore";
+import { usePetStore } from "../stores/petStore";
 
 type MapViewProps = {
   onSelectPet: (pet: StorePet) => void;
 };
 
-const DEFAULT_CENTER: [number, number] = [14.5995, 120.9845];
-const DEFAULT_ZOOM = 14;
+const DEFAULT_CENTER: [number, number] = [12.8797, 121.7740];
+const DEFAULT_ZOOM = 5;
 
-function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
+function PinMarkerHtml({ pet }: { pet: StorePet }) {
   const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
+  const imageUrl =
+    pet.image_url ||
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23e8e5dc'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -63,7 +66,7 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
         }}
       >
         <img
-          src={pet.image}
+          src={imageUrl}
           alt=""
           style={{
             width: 40,
@@ -108,7 +111,7 @@ function PinMarkerHtml({ pet }: { pet: LegacyPet }) {
   );
 }
 
-function makePinIcon(pet: LegacyPet) {
+function makePinIcon(pet: StorePet) {
   const html = renderToStaticMarkup(<PinMarkerHtml pet={pet} />);
   return divIcon({
     html,
@@ -119,6 +122,15 @@ function makePinIcon(pet: LegacyPet) {
 }
 
 function PetMarkers({ onSelectPet }: MapViewProps) {
+  const pets = usePetStore((s) => s.pets);
+  const fetchPets = usePetStore((s) => s.fetchPets);
+
+  useEffect(() => {
+    if (pets.length === 0) {
+      fetchPets(true);
+    }
+  }, [fetchPets, pets.length]);
+
   return (
     <>
       {pets
@@ -128,7 +140,7 @@ function PetMarkers({ onSelectPet }: MapViewProps) {
             key={pet.id}
             position={[pet.lat!, pet.lng!]}
             icon={makePinIcon(pet)}
-            eventHandlers={{ click: () => onSelectPet(pet as unknown as StorePet) }}
+            eventHandlers={{ click: () => onSelectPet(pet) }}
             title={pet.name}
           />
         ))}
