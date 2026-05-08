@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bud - Map View</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#dcc1b8",
+                    "inverse-on-surface": "#f3f0ec",
+                    "tertiary": "#005763",
+                    "primary-container": "#a64b2a",
+                    "secondary-fixed-dim": "#c9c7ba",
+                    "on-surface": "#1c1c19",
+                    "secondary-fixed": "#e6e3d6",
+                    "on-secondary-fixed-variant": "#48473e",
+                    "inverse-primary": "#ffb59c",
+                    "surface": "#fcf9f5",
+                    "primary": "#873415",
+                    "secondary-container": "#e6e3d6",
+                    "on-tertiary-fixed-variant": "#004e59",
+                    "on-tertiary-container": "#acf0ff",
+                    "on-background": "#1c1c19",
+                    "on-secondary-fixed": "#1c1c14",
+                    "outline": "#89726b",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#390c00",
+                    "on-secondary-container": "#66655a",
+                    "tertiary-container": "#007180",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#9c4323",
+                    "surface-dim": "#dcdad6",
+                    "on-surface-variant": "#56423c",
+                    "inverse-surface": "#31302e",
+                    "primary-fixed": "#ffdbcf",
+                    "surface-container-low": "#f6f3ef",
+                    "surface-bright": "#fcf9f5",
+                    "primary-fixed-dim": "#ffb59c",
+                    "on-error": "#ffffff",
+                    "surface-container": "#f0ede9",
+                    "tertiary-fixed-dim": "#80d3e3",
+                    "surface-container-highest": "#e5e2de",
+                    "surface-container-high": "#ebe8e4",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#fcf9f5",
+                    "tertiary-fixed": "#a0efff",
+                    "on-tertiary-fixed": "#001f25",
+                    "secondary": "#605f55",
+                    "on-primary-fixed-variant": "#7d2d0e",
+                    "on-primary-container": "#ffded4",
+                    "surface-variant": "#e5e2de",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": [
+                            "Manrope"
+                    ],
+                    "body": [
+                            "Work Sans"
+                    ],
+                    "label": [
+                            "Work Sans"
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        /* Hide scrollbar for horizontal scrolling containers */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body h-screen flex flex-col overflow-hidden selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="bg-[#fcf9f5] flex justify-between items-center w-full px-8 py-4 docked full-width top-0 z-40 relative shadow-[0_4px_24px_rgba(28,28,25,0.04)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#873415] text-3xl" style="font-variation-settings: 'FILL' 1;">pets</span>
+<img alt="Bud Logo" class="h-8 w-auto object-contain" data-alt="Minimalist solid terracotta logo for a pet app" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtEFDpdIjyDoUAgD7OkQvH7ptJlNmXAWOhMHft2zRQa5njk8fiS5vafC5h48rsqgeYnoIUC98bsiZ94gvb4_dgfKr2hNSqTioNa1yQ9EUAX3hP-66cqvtX213wIEOXB52p6om3g2k_eDHEFo6KZIP8iMX2scVYzWi04bXFfoPq2g1YXsPiRx7zP8HB4HnXkeh5QZlKOVYEmo1DEGM9OxjvEHwyqCWq1XvVlkdnW6M0SEdEaFUlHA2yY6aIb6DQuutwHrbGJt3k4aZt"/>
+<h1 class="font-['Manrope'] font-bold tracking-tight text-stone-900 text-3xl tracking-tighter ml-1">Bud</h1>
+</div>
+<button class="transition-colors duration-300 ease-in-out hover:bg-stone-200/50 p-2 rounded-full text-[#873415]">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<!-- Main Map Canvas Area -->
+<main class="flex-1 relative w-full h-full bg-surface-container-low overflow-hidden">
+<!-- Static Map Background (Placeholder for actual map component) -->
+<div class="absolute inset-0 w-full h-full bg-[#e8e5dc]">
+<img class="w-full h-full object-cover opacity-60 mix-blend-multiply" data-alt="Top down flat map view of city streets and blocks in muted earthy tones" data-location="Seattle, Washington" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcnGwFDAsfPLb8FpWyRAzCrsm9ChOSyl7v1QeEkMLPCbXxh3rBg9PFKrP0-kFj2i5hH22GXG-15aK8r5qdFTu8yqPilLXq-0XSLrrG2UINR98i1Kq-M3QrJ9RPC9shpNs0UYSOJShAxy8asPMkgU4zptPf-BvZXDCNtgrZi0-myPPyTAZM4ME1pv5w0M1FJvEZSw3eQPmbZvGdBXYF4CH2p7-fbQfuVXRzzWm_ms8BRgH67Zad3lGzD-myHaBJdeczPCFaPEMfH5FC"/>
+</div>
+<!-- Floating Search/Filter Overlay -->
+<div class="absolute top-6 left-4 right-4 z-10 max-w-md mx-auto">
+<div class="bg-surface-container-lowest rounded-xl flex items-center p-3 shadow-[0_8px_24px_rgba(28,28,25,0.06)]">
+<span class="material-symbols-outlined text-on-surface-variant ml-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body text-on-surface placeholder:text-on-surface-variant/60 ml-2 text-base outline-none" placeholder="Search areas..." type="text"/>
+<button class="bg-surface-container-low p-2 rounded-lg ml-2 text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">tune</span>
+</button>
+</div>
+</div>
+<!-- Map Markers - Lost Cats -->
+<!-- Marker 1: Active/Hovered State Concept -->
+<div class="absolute top-[40%] left-[35%] flex flex-col items-center group cursor-pointer z-20">
+<!-- Pin -->
+<div class="bg-primary text-on-primary rounded-full w-12 h-12 flex items-center justify-center shadow-[0_8px_24px_rgba(135,52,21,0.4)] relative">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">pets</span>
+<!-- Pointer triangle -->
+<div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-primary rotate-45 rounded-sm"></div>
+</div>
+<!-- Tooltip -->
+<div class="absolute top-14 bg-surface-container-lowest rounded-xl p-2 shadow-[0_8px_24px_rgba(28,28,25,0.1)] flex items-center gap-3 w-max opacity-100 transition-opacity">
+<img class="w-10 h-10 rounded-lg object-cover" data-alt="Close up of an orange tabby cat looking directly at camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5BNhbxf8sv8tym70gnQlUY6XloNV2j8NU1lu-E-8G18R-SqCqM57CrN-WzjzlnDKXGfc3yaBEMIG3gN9DNqn8UXwONKOf0mqjzBcs9kZr5TQ-jRESkFdCvT6BVbzruarBiWky4XEaAD_hYRRVzbTh_AHySOiTS9EbhfxXvTN3HQtLaf21fDT4Yub6f9JpRpztkajPHSPeRzjQRS1wTGIUcneyVabaZeBCBOlKtJ2cCJ1DSVyj04DJMs19w_rP6Fnq-LchJhcnWsIo"/>
+<div class="pr-2">
+<p class="font-headline font-bold text-sm text-on-surface">Marmalade</p>
+<p class="font-body text-[11px] text-primary font-medium">Lost 2h ago</p>
+</div>
+</div>
+</div>
+<!-- Marker 2: Inactive State -->
+<div class="absolute top-[25%] left-[65%] flex flex-col items-center group cursor-pointer z-20">
+<div class="bg-error text-on-error rounded-full w-10 h-10 flex items-center justify-center shadow-[0_4px_16px_rgba(186,26,26,0.3)] relative">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-error rotate-45 rounded-sm"></div>
+</div>
+</div>
+<!-- Marker 3: Another Cat -->
+<div class="absolute top-[60%] left-[50%] flex flex-col items-center group cursor-pointer z-20">
+<div class="bg-primary text-on-primary rounded-full w-10 h-10 flex items-center justify-center shadow-[0_4px_16px_rgba(135,52,21,0.3)] relative">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">pets</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rotate-45 rounded-sm"></div>
+</div>
+</div>
+<!-- Recenter Map Action -->
+<button class="absolute bottom-[280px] right-4 bg-surface-container-lowest text-primary p-3 rounded-full shadow-[0_8px_24px_rgba(28,28,25,0.08)] z-20 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">my_location</span>
+</button>
+<!-- Horizontal Scrolling Cards (Guardian Card Style) -->
+<div class="absolute bottom-28 left-0 w-full overflow-x-auto snap-x snap-mandatory px-4 pb-4 flex gap-4 z-30 hide-scrollbar pt-8">
+<!-- Card 1 -->
+<div class="snap-center shrink-0 w-80 bg-surface-container-lowest rounded-[1.5rem] p-4 shadow-[0_8px_32px_rgba(28,28,25,0.08)] flex gap-4 border-none">
+<img class="w-24 h-24 rounded-xl object-cover" data-alt="Close up of an orange tabby cat" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnusMw6Lsx5kiX845yDQ9OiZ8IyKdilZeQkhJIczOS4HXIUj8BqeE7lgh_jg6lfXY1sDCw1ubxzfP-9xR9oAn0Av6RvjbxNUnEhD2B26C3qEOCWYobeX4Dj45YJoimGBk-KA0Tcd8vP7ezZrfPFF1MKxEuVxMQrKWtxAc-elki3usHYD0b_Td86gkB_vVuONcEDvg93Ql4IvmbXM4kOvb8OOO1fm2ao3cJ-Z9AmZuPqm7DlL79LPpBogVsbeVc1JBGdbDQcStLorc-"/>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="bg-error-container text-on-error-container font-label text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Lost Cat</span>
+<span class="font-body text-xs text-on-surface-variant font-medium">0.2 mi</span>
+</div>
+<h3 class="font-headline font-bold text-xl text-on-surface leading-tight mt-1">Marmalade</h3>
+<p class="font-body text-sm text-on-surface-variant mt-1 line-clamp-1">Last seen near Oak St. Park</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="snap-center shrink-0 w-80 bg-surface-container-lowest rounded-[1.5rem] p-4 shadow-[0_8px_32px_rgba(28,28,25,0.08)] flex gap-4 border-none">
+<img class="w-24 h-24 rounded-xl object-cover" data-alt="A fluffy black cat sitting outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-fgMt1ODCJYYQSd8PuO21wIPf08P2u3gyO2WY01YKQi216XlmJ_b9jrD9Fw_N2lG685-VQNbXgdEtq4GOlwH2-zsdBmcBgoav52AsU2cmPT2Nq6SEim5mVUJm2wDJk8rG19233fKqa_BS4Snyrk-UUbZpvZe9jYO5HHnQW46v0Dqd1AsR4HjhvMtYzIT1zS1gJFHGhdGp8RfUEliDubcSwE0y8AV49G-hUf7zB3hwNi60Bw4fw_wmm4RAK7GTP5IU6qBWklM6Wru9"/>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="bg-error-container text-on-error-container font-label text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Lost Cat</span>
+<span class="font-body text-xs text-on-surface-variant font-medium">0.5 mi</span>
+</div>
+<h3 class="font-headline font-bold text-xl text-on-surface leading-tight mt-1">Shadow</h3>
+<p class="font-body text-sm text-on-surface-variant mt-1 line-clamp-1">Wearing blue collar with bell</p>
+</div>
+</div>
+<!-- Spacer for scrolling to end gracefully -->
+<div class="snap-center shrink-0 w-4"></div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 rounded-t-[24px] shadow-[0_-8px_24px_rgba(28,28,25,0.06)] no-line tonal-shift-surface-container-low">
+<!-- Map (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#873415] text-white rounded-full px-6 py-2.5 scale-105 transition-transform active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">map</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest mt-1">Map</span>
+</a>
+<!-- Community (Inactive) -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">groups</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest mt-1">Community</span>
+</a>
+<!-- Report (Inactive) -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">add_circle</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest mt-1">Report</span>
+</a>
+<!-- Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>
