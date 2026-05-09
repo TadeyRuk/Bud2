@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+# DESIGN SYSTEM — THE GROUNDED GUARDIAN
+
+[paste your full design.md content here]
+
+## Token reference (import from src/styles/tokens.ts)
+colors.primary = #873415
+colors.onSurface = #1c1c19
+colors.surface = #fcf9f5
+colors.surfaceContainerLow = #f6f3ef
+colors.surfaceContainerLowest = #ffffff
+colors.surfaceContainerHighest = #e5e2de
+colors.tertiary = #005763
+colors.tertiaryContainer = #007180

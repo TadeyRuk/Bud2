@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bud - Community Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#dcc1b8",
+                        "inverse-on-surface": "#f3f0ec",
+                        "tertiary": "#005763",
+                        "primary-container": "#a64b2a",
+                        "secondary-fixed-dim": "#c9c7ba",
+                        "on-surface": "#1c1c19",
+                        "secondary-fixed": "#e6e3d6",
+                        "on-secondary-fixed-variant": "#48473e",
+                        "inverse-primary": "#ffb59c",
+                        "surface": "#fcf9f5",
+                        "primary": "#873415",
+                        "secondary-container": "#e6e3d6",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "on-tertiary-container": "#acf0ff",
+                        "on-background": "#1c1c19",
+                        "on-secondary-fixed": "#1c1c14",
+                        "outline": "#89726b",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#390c00",
+                        "on-secondary-container": "#66655a",
+                        "tertiary-container": "#007180",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#9c4323",
+                        "surface-dim": "#dcdad6",
+                        "on-surface-variant": "#56423c",
+                        "inverse-surface": "#31302e",
+                        "primary-fixed": "#ffdbcf",
+                        "surface-container-low": "#f6f3ef",
+                        "surface-bright": "#fcf9f5",
+                        "primary-fixed-dim": "#ffb59c",
+                        "on-error": "#ffffff",
+                        "surface-container": "#f0ede9",
+                        "tertiary-fixed-dim": "#80d3e3",
+                        "surface-container-highest": "#e5e2de",
+                        "surface-container-high": "#ebe8e4",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#fcf9f5",
+                        "tertiary-fixed": "#a0efff",
+                        "on-tertiary-fixed": "#001f25",
+                        "secondary": "#605f55",
+                        "on-primary-fixed-variant": "#7d2d0e",
+                        "on-primary-container": "#ffded4",
+                        "surface-variant": "#e5e2de",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem", // Overriding xl to 1.5rem for Guardian Cards
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Work Sans", "sans-serif"],
+                        "label": ["Work Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .ambient-shadow {
+                box-shadow: 0 8px 24px rgba(28, 28, 25, 0.06);
+            }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body antialiased selection:bg-primary-container selection:text-on-primary pb-32">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 bg-[#fcf9f5] dark:bg-stone-950 flat no-border flex justify-between items-center w-full px-8 py-4 transition-colors duration-300 ease-in-out fixed z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#873415] dark:text-[#a64b2a]" style="font-variation-settings: 'FILL' 1;">pets</span>
+<div class="flex items-center gap-2">
+<img alt="Bud Logo" class="h-8 w-auto object-contain" data-alt="Minimalist terracotta colored paw print logo for Bud app" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASy0CN-nT8b2KyrLjSxEdQeM7nzbbUjDAYTIRvM8IJcG_ovmk9qUTpWGtF6nem_-VVehZ0RVX3LGXaSSj7Aqc1MXu5bhynaKBwa26BW7-Zrkf54X7WhuMKfaBp-Z32cuzgTA4-sa8Df4Gu7Ik1j8e51BT1BG_ZSP-R1GEB9GdgUXt1l1y9jlLyrfg2sQI9F41LSwnIouQkJV-apq_LANqA6wYUxTgs5w2Rin4JbFxgqfwgba2WAXv544l0R5vac-hvWd3hBnodwxcD"/>
+<span class="font-['Manrope'] font-bold tracking-tight text-stone-900 dark:text-stone-100 text-3xl tracking-tighter">Bud</span>
+</div>
+</div>
+<button class="text-[#873415] dark:text-[#a64b2a] hover:bg-stone-200/50 dark:hover:bg-stone-800/50 p-2 rounded-full transition-colors duration-300 ease-in-out flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-4 md:px-8 max-w-6xl mx-auto">
+<!-- Header Section: Asymmetric & Editorial -->
+<div class="pl-4 md:pl-12 py-10 mb-6">
+<h1 class="font-headline text-5xl md:text-6xl font-extrabold text-on-surface tracking-tight mb-4 leading-none">Community<br/>Board</h1>
+<p class="font-body text-on-surface-variant text-lg max-w-md">The grounding force of our neighborhood. Recent alerts and sightings near you.</p>
+</div>
+<!-- Bento Grid Feed Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+<!-- Featured Guardian Card (Missing Pet) -->
+<article class="md:col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col md:flex-row relative group">
+<!-- Status Stone -->
+<div class="absolute top-6 left-6 z-10 bg-error-container text-on-error-container font-label text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full ambient-shadow">
+                    Urgent Search
+                </div>
+<div class="relative w-full md:w-2/5 h-64 md:h-auto overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up portrait of a Golden Retriever dog outdoors with warm sunlight hitting its face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS09qsZ-5-IfFOypkJJQZwkFWrwY6TfmYrS3Wwch4lSNJiz-JdYaMJEM5DOQn70blOQHjK-RTxvcjvEnEs9WvFDmOjJFvJhASgqyenI_YZJJY-f7Wlt5mpcP9rCN4JSZ8DA4tCyERo2bNXX2FLsigA7YYSXDr3gY4Jnl2nTrMzTAdsNrQKW5B09zY_x29XanZsLSwDk0z8u0fwpPEW05F6HEd9G5vme0N5v3TIy_c2Ah39z21RX3UHRe9_pAoxgFTaS3tkbsHqX3n1"/>
+</div>
+<div class="p-8 md:p-10 w-full md:w-3/5 flex flex-col justify-between bg-surface-container-lowest">
+<div>
+<h2 class="font-headline text-4xl font-extrabold text-on-surface tracking-tight mb-2">Barnaby</h2>
+<p class="font-body text-on-surface-variant text-lg mb-6">Golden Retriever • Male • Red Collar</p>
+<div class="flex items-start gap-4 mb-6 bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-outline mt-0.5">location_on</span>
+<div>
+<p class="font-label font-semibold text-on-surface text-sm uppercase tracking-wider mb-1">Last seen near Oak Park</p>
+<p class="font-body text-sm text-on-surface-variant">Today, 2:30 PM • 0.8 miles away</p>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap sm:flex-nowrap gap-4 mt-4">
+<button class="bg-primary text-on-primary font-label text-sm font-bold uppercase tracking-widest py-4 px-8 rounded-md flex-1 text-center transition-transform active:scale-95">I Have Info</button>
+<button class="bg-secondary-container text-on-secondary-fixed-variant p-4 rounded-md transition-transform active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Map Snapshot Card -->
+<article class="md:col-span-6 lg:col-span-4 bg-surface-container-low rounded-xl overflow-hidden flex flex-col relative">
+<div class="h-48 relative w-full bg-surface-container-highest">
+<img class="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-multiply" data-alt="Abstract view of a street map with soft terracotta and earthy tone overlays" data-location="Neighborhood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBexbq7TH7HrSaMio7SL2Fe-WofLrJtnKncsTAmuPUROLe3AUnGSa4MC8JO0-7pGrcVxOO64J7TCLDo0aVwMPw9hYtsMm3xvgUtRFeQ9uQLwFy4SuDNRETmTzXVvME901TNZ_K6vx5C5E_sZL_DBRrb35nJ7q4JY-WRjwmDHKE3cN9xPXmNekfm17yBq6BVmeiqMnmfxLFpFuZkWNyq6p0Jt6AdBLdMHYhO1uWhAhzfjRWeJmnEV-hA1GJwrNVrxlPwGrOUE2syI_Ib"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+<!-- Map Marker -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary drop-shadow-md">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col justify-end text-center items-center">
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-2">Search Area Map</h3>
+<p class="font-body text-on-surface-variant text-sm mb-6">View 3 active reports and 12 recent sightings geographically.</p>
+<button class="bg-surface-container-lowest text-primary font-label text-sm font-bold uppercase tracking-widest py-3 px-6 rounded-md w-full ambient-shadow transition-transform active:scale-95">Open Map</button>
+</div>
+</article>
+<!-- Found Pet Sighting Card -->
+<article class="md:col-span-6 lg:col-span-4 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col">
+<div class="p-6 pb-0 flex justify-between items-start mb-4">
+<div class="bg-tertiary-container text-on-tertiary-container font-label text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                        Sighting
+                    </div>
+<span class="font-body text-xs text-on-surface-variant">2 hrs ago</span>
+</div>
+<div class="px-6 flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-surface-container-highest flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Close up of an orange tabby cat looking directly at the camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVgz3SqP1xSusxuVeTNJWbPLtY-VMqkKKWTnLnu0YQp-ukdt-_ddLvkIjVb1k78aE7yFJBSoZrRfsMl_0Oo6Wv0TddadEiH1uTteL9Kwx_tLWg4PLQSG6DPOMgG8v77xp_dPVQS98tXhFWs4ElrRfYB13-vsvxqx1boG6VOz4AbKZxYhyXcz8mmA40WZjxkO1zWyalfs9DyJ-xCy5AHAKFGhevQPKeriW3hO0_Fgxl97zoIxDMoKVsKxJlqaIZNue2y1Bbm2_9zA8m"/>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface leading-tight">Orange Tabby Cat</h3>
+<p class="font-body text-sm text-on-surface-variant">No collar, looking scared.</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 mx-6 rounded-lg mb-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-sm">near_me</span>
+<p class="font-body text-xs text-on-surface font-medium">Alley behind Main St Bakery</p>
+</div>
+<div class="px-6 pb-6 mt-auto">
+<button class="w-full bg-secondary-container text-on-secondary-fixed-variant font-label text-sm font-bold uppercase tracking-widest py-3 rounded-md transition-transform active:scale-95">View Details</button>
+</div>
+</article>
+<!-- Safe Pet Card (Status Stone Showcase) -->
+<article class="md:col-span-6 lg:col-span-8 bg-surface-container-low rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-l-8 border-tertiary-container">
+<div class="flex items-center gap-6">
+<div class="w-20 h-20 rounded-full overflow-hidden border-4 border-surface-container-lowest flex-shrink-0 relative">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="Small black pug dog sitting patiently" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3Qy4b90QLzov4ww3r2vz9pPUCdhNw8w0jvP7iYn7qV5zKZw9qE7hKio6kp6tBbZqngwuj7Yz5H-qfxsmiUwa5ydVT8ivP8GvNAYLxt0nkRb2LO0VTL1dLvzhXMzwCPvSHQUqrYqbjUknvTiLFZJWv1Buyob_7sm487lyGV7NjYYz0jPALbQsTOV4cvre609YNwQS-p0GbBFaqYRRZlp-BuDEOLN8bLYc0warxUQwiOi0OvQk6IkxTVFV-TSNFVPC6H63kLTOo3VvZ"/>
+</div>
+<div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Luna</h3>
+<p class="font-body text-on-surface-variant">Reunited with family • 14 hrs search</p>
+</div>
+</div>
+<div class="bg-tertiary-container text-on-tertiary-container font-headline text-lg font-bold px-6 py-3 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Safe &amp; Sound
+                </div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl rounded-t-[24px] shadow-[0_-8px_24px_rgba(28,28,25,0.06)] md:hidden no-line tonal-shift-surface-container-low">
+<!-- Inactive Tab: Map -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Map</span>
+</a>
+<!-- Active Tab: Community -->
+<a class="flex flex-col items-center justify-center bg-[#873415] text-white rounded-full px-5 py-2 scale-105 transition-transform active:scale-95 duration-200 shadow-md" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Community</span>
+</a>
+<!-- Inactive Tab: Report -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">add_circle</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Report</span>
+</a>
+<!-- Inactive Tab: Profile -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+<!-- Desktop Side Navigation (Placeholder to satisfy 'responsive pivot' logic implicitly by hiding bottom nav on md) -->
+<!-- The Bottom Nav is hidden on md via class, top nav expands capabilities conceptually on web -->
+</body></html>

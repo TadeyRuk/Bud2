@@ -1,0 +1,30 @@
+---
+description: Use when building the Logo component or integrating it into the app
+---
+
+# LOGO AGENT RULES
+
+## Your task
+Create the Bud2 logo as an SVG and wrap it in a reusable React component.
+
+## Files to create
+- `src/assets/logo.svg` — the raw SVG (paw print with location pin motif, terracotta #873415)
+- `src/components/Logo/Logo.tsx` — the component
+- `src/components/Logo/index.ts` — barrel export
+
+## Logo component spec
+Props:
+- `size`: 'sm' | 'md' | 'lg' (maps to 24px / 40px / 64px)
+- `variant`: 'icon' | 'full' (icon only, or icon + "Bud" wordmark beside it)
+- `color`: optional override, defaults to #873415
+
+## Where to integrate (check each one)
+- `src/components/Navbar` or equivalent top nav
+- `src/features/onboarding/` — onboarding header
+- `src/pages/Landing/` — hero section
+- Any auth screens if present
+
+## Do not
+- Use an img tag pointing to a public URL
+- Hard-code size in the SVG — use the size prop
+- Use any color other than the terracotta primary unless `color` prop is passed

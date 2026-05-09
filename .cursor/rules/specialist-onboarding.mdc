@@ -1,0 +1,35 @@
+---
+description: Use when building the onboarding flow
+---
+
+# ONBOARDING AGENT RULES
+
+## Your task
+Build a 3-slide onboarding flow that only shows once.
+
+## File structure to create
+src/features/onboarding/
+  OnboardingFlow.tsx   — container managing slide index
+  OnboardingSlide.tsx  — single slide layout
+  slides.ts            — slide content config
+  index.ts             — barrel export
+
+## Slide content
+Slide 1: headline "Find lost pets near you" / sub "Browse reports in your neighborhood in seconds"
+Slide 2: headline "Post a missing pet" / sub "Takes under 2 minutes. Reaches your whole community"  
+Slide 3: headline "Reunited by community" / sub "Thousands of pets found. Yours could be next" / CTA "Get Started"
+
+## Behavior rules
+- Store completion in localStorage key: `bud_onboarded`
+- If key exists and equals "true" — skip onboarding, redirect to "/"
+- Progress dots: filled circle = current, empty circle = future
+- Skip button on slides 1 and 2 — sets key and redirects
+- "Next" on slide 3 becomes "Get Started" → same behavior
+
+## Design rules (from design system)
+- Full screen slides, mobile-first
+- Background: colors.surfaceContainerLow (#f6f3ef)
+- Headline: Manrope font, display-lg size
+- No 1px borders anywhere
+- Logo component (variant="icon", size="md") at top center of each slide
+- Illustration area: simple inline SVG placeholder, 200px tall, centered

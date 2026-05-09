@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Report Lost Pet - Bud</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800;900&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#dcc1b8",
+                        "inverse-on-surface": "#f3f0ec",
+                        "tertiary": "#005763",
+                        "primary-container": "#a64b2a",
+                        "secondary-fixed-dim": "#c9c7ba",
+                        "on-surface": "#1c1c19",
+                        "secondary-fixed": "#e6e3d6",
+                        "on-secondary-fixed-variant": "#48473e",
+                        "inverse-primary": "#ffb59c",
+                        "surface": "#fcf9f5",
+                        "primary": "#873415",
+                        "secondary-container": "#e6e3d6",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "on-tertiary-container": "#acf0ff",
+                        "on-background": "#1c1c19",
+                        "on-secondary-fixed": "#1c1c14",
+                        "outline": "#89726b",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#390c00",
+                        "on-secondary-container": "#66655a",
+                        "tertiary-container": "#007180",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#9c4323",
+                        "surface-dim": "#dcdad6",
+                        "on-surface-variant": "#56423c",
+                        "inverse-surface": "#31302e",
+                        "primary-fixed": "#ffdbcf",
+                        "surface-container-low": "#f6f3ef",
+                        "surface-bright": "#fcf9f5",
+                        "primary-fixed-dim": "#ffb59c",
+                        "on-error": "#ffffff",
+                        "surface-container": "#f0ede9",
+                        "tertiary-fixed-dim": "#80d3e3",
+                        "surface-container-highest": "#e5e2de",
+                        "surface-container-high": "#ebe8e4",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#fcf9f5",
+                        "tertiary-fixed": "#a0efff",
+                        "on-tertiary-fixed": "#001f25",
+                        "secondary": "#605f55",
+                        "on-primary-fixed-variant": "#7d2d0e",
+                        "on-primary-container": "#ffded4",
+                        "surface-variant": "#e5e2de",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Work Sans"],
+                        "label": ["Work Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar (Hidden on Mobile) -->
+<header class="hidden md:flex justify-between items-center w-full px-8 py-4 bg-[#fcf9f5] dark:bg-stone-950 font-['Manrope'] font-bold tracking-tight text-stone-900 dark:text-stone-100 docked full-width top-0 sticky z-50 transition-colors duration-300 ease-in-out">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-[#873415] dark:text-[#a64b2a]" style="font-variation-settings: 'FILL' 1;">pets</span>
+<span class="text-3xl font-black text-[#873415] dark:text-[#a64b2a] tracking-tighter">Bud</span>
+</div>
+<nav class="flex gap-8 items-center font-['Work_Sans'] text-sm font-semibold uppercase tracking-widest">
+<a class="text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 px-4 py-2 rounded-full transition-colors duration-300 ease-in-out" href="#">Map</a>
+<a class="text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 px-4 py-2 rounded-full transition-colors duration-300 ease-in-out" href="#">Community</a>
+<a class="text-[#873415] dark:text-[#a64b2a] hover:bg-stone-200/50 dark:hover:bg-stone-800/50 px-4 py-2 rounded-full transition-colors duration-300 ease-in-out flex flex-col items-center" href="#">Report</a>
+<a class="text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 px-4 py-2 rounded-full transition-colors duration-300 ease-in-out" href="#">Profile</a>
+</nav>
+<button class="p-2 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 rounded-full transition-colors duration-300 ease-in-out">
+<span class="material-symbols-outlined text-[#873415] dark:text-[#a64b2a]">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-4xl mx-auto px-6 pt-12 pb-32 md:pb-24 flex flex-col gap-12">
+<!-- Header Section -->
+<header class="pl-2 md:pl-8 border-l-8 border-primary">
+<h1 class="font-headline text-5xl md:text-6xl font-black tracking-tighter text-on-surface leading-tight">Bring Them<br/><span class="text-primary">Home.</span></h1>
+<p class="font-body text-on-surface-variant mt-4 max-w-md text-lg">Provide details about the pet you've lost. The more accurate the information, the better our community can help.</p>
+</header>
+<!-- Form Area -->
+<form class="flex flex-col gap-8 md:gap-12">
+<!-- Photo Upload Section (Bento style highlight) -->
+<section class="bg-surface-container-low rounded-[2rem] p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center">
+<div class="w-full md:w-1/3 flex flex-col gap-2">
+<h2 class="font-headline text-2xl font-bold text-on-surface tracking-tight">Recent Photo</h2>
+<p class="font-body text-sm text-on-surface-variant">A clear, well-lit photo is the most crucial piece of information.</p>
+</div>
+<div class="w-full md:w-2/3 bg-surface-container-highest rounded-xl p-8 flex flex-col items-center justify-center gap-4 text-center cursor-pointer hover:bg-surface-container-high transition-colors group">
+<div class="w-20 h-20 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-[0_8px_24px_rgba(28,28,25,0.06)] group-hover:-translate-y-1 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">add_a_photo</span>
+</div>
+<div>
+<span class="font-body font-semibold text-on-surface block mb-1">Tap to upload a photo</span>
+<span class="font-body text-xs text-on-surface-variant">JPG, PNG up to 10MB</span>
+</div>
+</div>
+</section>
+<!-- Details Section -->
+<section class="bg-surface-container-low rounded-[2rem] p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="col-span-1 md:col-span-2">
+<h2 class="font-headline text-2xl font-bold text-on-surface tracking-tight mb-6">Basic Details</h2>
+</div>
+<!-- Pet Type -->
+<div class="flex flex-col gap-2 col-span-1 md:col-span-2">
+<label class="font-label text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Pet Type</label>
+<div class="flex gap-4">
+<button class="flex-1 bg-primary text-on-primary py-3 px-4 rounded-md font-body font-bold shadow-[0_4px_12px_rgba(135,52,21,0.2)]" type="button">Dog</button>
+<button class="flex-1 bg-secondary-container text-on-secondary-fixed-variant py-3 px-4 rounded-md font-body font-bold hover:bg-surface-variant transition-colors" type="button">Cat</button>
+<button class="flex-1 bg-secondary-container text-on-secondary-fixed-variant py-3 px-4 rounded-md font-body font-bold hover:bg-surface-variant transition-colors" type="button">Other</button>
+</div>
+</div>
+<!-- Pet Name -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm font-semibold text-on-surface-variant uppercase tracking-wider" for="petName">Pet's Name</label>
+<input class="bg-surface-container-highest text-on-surface p-4 rounded-sm w-full outline-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all placeholder:text-on-surface-variant/50 font-body text-lg" id="petName" placeholder="e.g. Max" type="text"/>
+</div>
+<!-- Last Seen Location -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm font-semibold text-on-surface-variant uppercase tracking-wider" for="location">Last Seen Location</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">location_on</span>
+<input class="bg-surface-container-highest text-on-surface p-4 pl-12 rounded-sm w-full outline-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all placeholder:text-on-surface-variant/50 font-body text-lg" id="location" placeholder="Address or cross street" type="text"/>
+</div>
+</div>
+<!-- Description -->
+<div class="flex flex-col gap-2 col-span-1 md:col-span-2">
+<label class="font-label text-sm font-semibold text-on-surface-variant uppercase tracking-wider" for="description">Physical Description &amp; Traits</label>
+<textarea class="bg-surface-container-highest text-on-surface p-4 rounded-sm w-full outline-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all placeholder:text-on-surface-variant/50 font-body text-lg resize-none" id="description" placeholder="Describe their collar, distinct markings, or behavior (e.g., 'Shy around strangers', 'Wearing a red collar')..." rows="4"></textarea>
+</div>
+</section>
+<!-- Actions -->
+<div class="flex justify-end mt-4">
+<button class="bg-primary text-on-primary rounded-md px-12 py-5 font-headline font-bold text-lg w-full md:w-auto hover:bg-surface-tint active:scale-95 transition-all" type="submit">Submit Report</button>
+</div>
+</form>
+</main>
+<!-- BottomNavBar (Hidden on Web) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl rounded-t-[24px] shadow-[0_-8px_24px_rgba(28,28,25,0.06)] active:scale-95 transition-all duration-200">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100" href="#">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Map</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100" href="#">
+<span class="material-symbols-outlined mb-1">groups</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Community</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#873415] text-white rounded-full px-5 py-2 scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Report</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-stone-900 dark:hover:text-stone-100" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['Work_Sans'] text-[11px] font-semibold uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+</body></html>

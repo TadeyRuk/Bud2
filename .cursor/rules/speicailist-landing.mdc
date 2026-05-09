@@ -1,0 +1,28 @@
+---
+description: Use when building the landing page
+---
+
+# LANDING PAGE AGENT RULES
+
+## Your task
+Build the public-facing landing page at src/pages/Landing/LandingPage.tsx
+
+## Section order (top to bottom)
+1. Nav bar — Logo (variant="full"), links: Browse, Report, About
+2. Hero — big headline, sub, two CTAs ("Report a Lost Pet" primary, "Browse Found Pets" secondary)
+3. How It Works — 3 steps with icons: Post → Notify → Reunite
+4. Recent Reports — grid of 3 mock pet cards (name, photo placeholder, last seen, status badge)
+5. Stats bar — pets found, reports filed, cities active (use mock numbers)
+6. Footer — Logo (variant="icon"), nav links, "Built with ❤️ for every pet owner"
+
+## Design rules
+- Hero background: colors.primary (#873415) — terracotta hero section
+- Hero text: white
+- Section backgrounds alternate: surface (#fcf9f5) → surfaceContainerLow (#f6f3ef)
+- No 1px dividers between sections — background shift only
+- Status badge on pet cards: pill shape, full border-radius, tertiaryContainer (#007180) for "Safe", amber for "Searching"
+- Cards: surfaceContainerLowest (#ffffff) on surfaceContainerLow background — creates the tonal lift
+- Pet card corner radius: 1.5rem (xl) per design system
+
+## SEO
+Add to page head: title "Bud — Find Lost Pets Near You", meta description, og:title, og:description
