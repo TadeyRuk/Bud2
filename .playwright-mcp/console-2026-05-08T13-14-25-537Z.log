@@ -1,0 +1,119 @@
+[      63ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[  368837ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5175/src/components/ErrorBoundary.tsx?t=1778246434212:0
+[  368838ms] [ERROR] [vite] Failed to reload /src/components/ErrorBoundary.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  368841ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5175/src/components/OfflineBanner.tsx?t=1778246434212:0
+[  368841ms] [ERROR] [vite] Failed to reload /src/components/OfflineBanner.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  368849ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5175/src/screens/Auth.tsx?t=1778246434212:0
+[  368850ms] [ERROR] [vite] Failed to reload /src/screens/Auth.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  368852ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5175/src/screens/Notifications.tsx?t=1778246434212:0
+[  368853ms] [ERROR] [vite] Failed to reload /src/screens/Notifications.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  368952ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[  652627ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:20102
+[  702043ms] TypeError: Cannot read properties of undefined (reading 'map')
+    at CommunityBoard (http://localhost:5175/src/screens/CommunityBoard.tsx?t=1778246767530:115:80)
+    at Object.react_stack_bottom_frame (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:18509:20)
+    at renderWithHooks (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:5654:24)
+    at updateFunctionComponent (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:7475:21)
+    at beginWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:8525:20)
+    at runWithFiberInDEV (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:997:72)
+    at performUnitOfWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12561:98)
+    at workLoopSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12424:43)
+    at renderRootSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12408:13)
+    at performWorkOnRoot (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:11827:37)
+[  702043ms] [WARNING] %s
+
+%s
+ An error occurred in the <CommunityBoard> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:6965
+[  708509ms] TypeError: Cannot read properties of undefined (reading 'map')
+    at CommunityBoard (http://localhost:5175/src/screens/CommunityBoard.tsx?t=1778246767530:115:80)
+    at Object.react_stack_bottom_frame (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:18509:20)
+    at renderWithHooks (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:5654:24)
+    at updateFunctionComponent (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:7475:21)
+    at beginWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:8525:20)
+    at runWithFiberInDEV (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:997:72)
+    at performUnitOfWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12561:98)
+    at workLoopSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12424:43)
+    at renderRootSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12408:13)
+    at performWorkOnRoot (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:11827:37)
+[  708509ms] [WARNING] %s
+
+%s
+ An error occurred in the <CommunityBoard> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:6965
+[  711910ms] TypeError: Cannot read properties of undefined (reading 'map')
+    at CommunityBoard (http://localhost:5175/src/screens/CommunityBoard.tsx?t=1778246767530:115:80)
+    at Object.react_stack_bottom_frame (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:18509:20)
+    at renderWithHooks (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:5654:24)
+    at updateFunctionComponent (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:7475:21)
+    at beginWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:8525:20)
+    at runWithFiberInDEV (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:997:72)
+    at performUnitOfWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12561:98)
+    at workLoopSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12424:43)
+    at renderRootSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12408:13)
+    at performWorkOnRoot (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:11827:37)
+[  711909ms] [WARNING] %s
+
+%s
+ An error occurred in the <CommunityBoard> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:6965
+[  714370ms] TypeError: Cannot read properties of undefined (reading 'map')
+    at CommunityBoard (http://localhost:5175/src/screens/CommunityBoard.tsx?t=1778246767530:115:80)
+    at Object.react_stack_bottom_frame (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:18509:20)
+    at renderWithHooks (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:5654:24)
+    at updateFunctionComponent (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:7475:21)
+    at beginWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:8525:20)
+    at runWithFiberInDEV (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:997:72)
+    at performUnitOfWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12561:98)
+    at workLoopSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12424:43)
+    at renderRootSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12408:13)
+    at performWorkOnRoot (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:11827:37)
+[  714370ms] [WARNING] %s
+
+%s
+ An error occurred in the <CommunityBoard> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:6965
+[  720490ms] TypeError: Cannot read properties of undefined (reading 'map')
+    at CommunityBoard (http://localhost:5175/src/screens/CommunityBoard.tsx?t=1778246767530:115:80)
+    at Object.react_stack_bottom_frame (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:18509:20)
+    at renderWithHooks (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:5654:24)
+    at updateFunctionComponent (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:7475:21)
+    at beginWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:8525:20)
+    at runWithFiberInDEV (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:997:72)
+    at performUnitOfWork (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12561:98)
+    at workLoopSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12424:43)
+    at renderRootSync (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:12408:13)
+    at performWorkOnRoot (http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:11827:37)
+[  720489ms] [WARNING] %s
+
+%s
+ An error occurred in the <CommunityBoard> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5175/node_modules/.vite/deps/react-dom_client.js?v=26072e43:6965
+[  782731ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848224:0
+[  782731ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  782933ms] [WARNING] GoTrueClient@sb-placeholder-auth-token:1 (2.105.3) 2026-05-08T13:27:28.469Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key. @ http://localhost:5175/node_modules/.vite/deps/@supabase_supabase-js.js?v=26072e43:15254
+[  782984ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848225:0
+[  782984ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783010ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783019ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848228:0
+[  783019ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783029ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848229:0
+[  783030ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783030ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783040ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848230:0
+[  783040ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783041ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783071ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848373:0
+[  783073ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783086ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848374:0
+[  783087ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783087ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783097ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848375:0
+[  783098ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783098ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783099ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783105ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848376:0
+[  783106ms] [ERROR] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5175/@vite/client:881
+[  783185ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246848376:0
+[  785022ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/index.css?t=1778246850530:0
+[  785026ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5175/src/App.tsx?t=1778246850530:0

@@ -1,0 +1,68 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e10]: Bud
+    - button "Notifications" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+  - generic [ref=e147]:
+    - banner [ref=e148]:
+      - heading "Bring Them Home." [level=1] [ref=e149]:
+        - text: Bring Them
+        - text: Home.
+      - paragraph [ref=e150]: Provide details about the pet you've lost. The more accurate the information, the better our community can help.
+    - generic [ref=e151]:
+      - paragraph [ref=e152]: You need to sign in to submit a report.
+      - button "Sign In" [ref=e153] [cursor=pointer]
+    - generic [ref=e154]:
+      - generic [ref=e155]:
+        - generic [ref=e156]:
+          - paragraph [ref=e157]: Photo
+          - paragraph [ref=e158]: A clear face shot helps neighbors recognize them quickly.
+        - button "Tap to upload a photo" [ref=e159] [cursor=pointer]:
+          - generic [ref=e160]: Tap to upload a photo
+        - button "Upload pet photo" [ref=e161]
+      - generic [ref=e162]:
+        - text: Pet type
+        - combobox "Pet type" [ref=e163]:
+          - option "Dog" [selected]
+          - option "Cat"
+          - option "Other"
+      - generic [ref=e164]:
+        - text: Pet name
+        - textbox "Pet name" [ref=e165]:
+          - /placeholder: e.g. Barnaby
+      - generic [ref=e166]:
+        - text: Color / collar
+        - textbox "Color / collar" [ref=e167]:
+          - /placeholder: e.g. Golden, Red Collar
+      - generic [ref=e168]:
+        - text: Gender
+        - combobox "Gender" [ref=e169]:
+          - option "Unknown" [selected]
+          - option "Male"
+          - option "Female"
+      - generic [ref=e170]:
+        - text: Last seen location
+        - textbox "Last seen location" [ref=e171]:
+          - /placeholder: Street, landmark, or barangay
+      - generic [ref=e172]:
+        - text: Description / traits
+        - textbox "Description / traits" [ref=e173]:
+          - /placeholder: Collar color, markings, behavior, anything that helps identify them...
+      - button "Submit Report" [disabled] [ref=e174]
+  - navigation "Main" [ref=e83]:
+    - generic [ref=e84]:
+      - button "Community board" [ref=e86] [cursor=pointer]:
+        - img [ref=e87]
+        - generic [ref=e89]: Community
+      - button "Map view" [ref=e91] [cursor=pointer]:
+        - img [ref=e92]
+        - generic [ref=e94]: Map
+      - generic [ref=e95]:
+        - button "Report lost pet" [active] [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+        - generic [ref=e99]: Report
+      - button "Profile" [ref=e101] [cursor=pointer]:
+        - img [ref=e102]
+        - generic [ref=e104]: Profile
