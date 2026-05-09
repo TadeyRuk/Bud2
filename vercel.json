@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd bud && npm install",
+  "buildCommand": "cd bud && npm run build",
+  "outputDirectory": "bud/dist"
+}
