@@ -3,11 +3,14 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App";
+import { PetsProvider } from "./context/PetsContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <PetsProvider>
+        <App />
+      </PetsProvider>
     </BrowserRouter>
   </StrictMode>
 );
