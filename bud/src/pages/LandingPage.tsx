@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { PageCanvas } from "../components/PageCanvas";
 import { colors, radius, shadows } from "../styles/tokens";
 
 function BudMark() {
@@ -65,10 +66,8 @@ export function LandingPage() {
   );
 
   return (
-    <div
-      className="h-full min-h-0 overflow-y-auto px-5 pt-10 pb-10"
-      style={{ background: colors.background }}
-    >
+    <PageCanvas>
+      <div className="h-full min-h-0 px-5 pt-10 pb-10">
       <style>{styleText}</style>
 
       <div className="mx-auto w-full" style={{ maxWidth: 430 }}>
@@ -297,7 +296,8 @@ export function LandingPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </PageCanvas>
   );
 }
 

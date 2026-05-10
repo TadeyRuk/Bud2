@@ -5,9 +5,9 @@ export default {
     extend: {
       colors: {
         bud: {
-          primary: "#C1440E",
-          "primary-dim": "#a63a0c",
-          bg: "#F5F0E8",
+          primary: "#8B3A15",
+          "primary-dim": "#723012",
+          bg: "#F0EBE3",
           card: "#FFFFFF",
           text: "#2C1A0E",
           "text-muted": "#56423c",

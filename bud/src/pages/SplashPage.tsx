@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageCanvas } from "../components/PageCanvas";
 import { colors, radius, shadows } from "../styles/tokens";
 
 function BudGlyph() {
@@ -20,56 +21,25 @@ export function SplashPage() {
     return () => window.clearTimeout(id);
   }, [navigate]);
 
-  const styleText = useMemo(
-    () => `
-@keyframes bud-pop {
-  0% { opacity: 0; transform: scale(0.92); filter: blur(2px); }
-  60% { opacity: 1; transform: scale(1.02); filter: blur(0px); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes bud-glow {
-  0%,100% { opacity: 0.10; transform: scale(0.96); }
-  50% { opacity: 0.22; transform: scale(1.04); }
-}
-@keyframes bud-orbit {
-  0% { transform: rotate(0deg) translateX(38px) rotate(0deg); opacity: 0.0; }
-  10% { opacity: 0.7; }
-  100% { transform: rotate(360deg) translateX(38px) rotate(-360deg); opacity: 0.0; }
-}
-@keyframes bud-progress {
-  0% { transform: translateX(-65%); }
-  100% { transform: translateX(165%); }
-}
-`,
-    []
-  );
-
   return (
-    <div className="h-full min-h-0 px-5 py-10" style={{ background: colors.background }}>
-      <style>{styleText}</style>
-
-      <div
-        className="mx-auto w-full h-full min-h-0 flex flex-col items-center justify-center"
-        style={{ maxWidth: 430 }}
-      >
+    <PageCanvas>
+      <div className="mx-auto flex h-full min-h-0 w-full flex-col items-center justify-center px-5 py-10" style={{ maxWidth: 430 }}>
         <div
-          className="relative grid place-items-center"
+          className="bud-splash-logo-wrap relative grid place-items-center"
           style={{
             width: 160,
             height: 160,
             borderRadius: radius.full,
             background: colors.surfaceCard,
             boxShadow: shadows.float,
-            animation: "bud-pop 520ms ease-out both",
           }}
         >
           <div
             aria-hidden
-            className="absolute inset-0"
+            className="bud-splash-ring-pulse absolute inset-[10px]"
             style={{
               borderRadius: radius.full,
-              background: `radial-gradient(circle at 30% 25%, ${colors.outlineVariant}, transparent 55%)`,
-              opacity: 0.22,
+              boxShadow: `inset 0 0 0 2px ${colors.primary}22`,
             }}
           />
           <div
@@ -77,44 +47,24 @@ export function SplashPage() {
             className="absolute inset-0"
             style={{
               borderRadius: radius.full,
-              background: `radial-gradient(circle at 50% 55%, ${colors.tertiaryContainer}, transparent 58%)`,
-              animation: "bud-glow 2.2s ease-in-out infinite",
+              background: `radial-gradient(circle at 32% 28%, ${colors.outlineVariant}, transparent 52%)`,
+              opacity: 0.2,
             }}
           />
-
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              borderRadius: radius.full,
+              background: `radial-gradient(circle at 50% 58%, ${colors.tertiaryContainer}, transparent 58%)`,
+              opacity: 0.35,
+            }}
+          />
           <BudGlyph />
-
-          <span
-            aria-hidden
-            className="absolute"
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: radius.full,
-              background: colors.primary,
-              boxShadow: shadows.card,
-              animation: "bud-orbit 1.15s ease-in-out infinite",
-            }}
-          />
-          <span
-            aria-hidden
-            className="absolute"
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: radius.full,
-              background: colors.tertiary,
-              boxShadow: shadows.card,
-              animation: "bud-orbit 1.25s ease-in-out 120ms infinite",
-            }}
-          />
         </div>
 
-        <div className="mt-7 text-center" style={{ animation: "bud-pop 650ms ease-out 120ms both" }}>
-          <div
-            className="font-headline text-4xl font-extrabold tracking-tight"
-            style={{ color: colors.onSurface }}
-          >
+        <div className="bud-splash-title mt-7 text-center">
+          <div className="font-headline text-4xl font-extrabold tracking-tight" style={{ color: colors.onSurface }}>
             Bud
           </div>
           <div className="mt-2 font-body text-sm font-semibold" style={{ color: colors.onSurfaceVariant }}>
@@ -135,19 +85,17 @@ export function SplashPage() {
         >
           <div
             aria-hidden
-            className="absolute inset-y-0"
+            className="bud-splash-progress-shimmer absolute inset-y-0"
             style={{
               width: "40%",
               borderRadius: radius.full,
               background: `linear-gradient(90deg, transparent, ${colors.primary}, transparent)`,
               transform: "translateX(-65%)",
-              animation: "bud-progress 1.1s ease-in-out infinite",
-              opacity: 0.9,
+              opacity: 0.92,
             }}
           />
         </div>
       </div>
-    </div>
+    </PageCanvas>
   );
 }
-

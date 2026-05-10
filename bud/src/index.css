@@ -18,3 +18,89 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Page motif — subtle paw dots (tertiary ink on canvas) */
+.bud-motif-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Ccircle cx='12' cy='14' r='2.2' fill='%23005763'/%3E%3Ccircle cx='22' cy='12' r='2.2' fill='%23005763'/%3E%3Ccircle cx='17' cy='20' r='2.6' fill='%23005763'/%3E%3Cellipse cx='36' cy='36' rx='3' ry='4' fill='%238B3A15' opacity='0.35'/%3E%3C/svg%3E");
+  background-size: 72px 72px;
+}
+
+@keyframes bud-tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bud-tab-fade {
+  animation: bud-tab-fade-in 220ms ease-out both;
+}
+
+@keyframes bud-splash-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(3px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.015);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes bud-splash-ring {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.28;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes bud-splash-progress {
+  0% {
+    transform: translateX(-65%);
+  }
+  100% {
+    transform: translateX(165%);
+  }
+}
+
+.bud-splash-logo-wrap {
+  animation: bud-splash-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bud-splash-ring-pulse {
+  animation: bud-splash-ring 2.4s ease-in-out infinite;
+}
+
+.bud-splash-progress-shimmer {
+  animation: bud-splash-progress 1.05s ease-in-out infinite;
+}
+
+.bud-splash-title {
+  animation: bud-splash-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bud-tab-fade,
+  .bud-splash-logo-wrap,
+  .bud-splash-ring-pulse,
+  .bud-splash-progress-shimmer,
+  .bud-splash-title {
+    animation: none !important;
+  }
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Toaster } from "react-hot-toast";
 import { BottomNav, type TabId } from "./components/BottomNav";
 import { OfflineBanner } from "./components/OfflineBanner";
@@ -16,12 +16,33 @@ import { useNotificationStore } from "./stores/notificationStore";
 import { useUiStore } from "./stores/uiStore";
 import { useNetworkStatus } from "./lib/networkStatus";
 
-function AppHeader({ onNotifications }: { onNotifications: () => void }) {
+function AppHeader({
+  activeTab,
+  communityScrollRef,
+  onNotifications,
+}: {
+  activeTab: TabId;
+  communityScrollRef: RefObject<HTMLDivElement | null>;
+  onNotifications: () => void;
+}) {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+
+  const scrollCommunityTop = useCallback(() => {
+    if (activeTab !== "community") return;
+    const el = communityScrollRef.current;
+    if (!el) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  }, [activeTab, communityScrollRef]);
 
   return (
     <header className="shrink-0 flex items-center justify-between px-4 pt-3 pb-2 bg-bud-bg/95 backdrop-blur-sm z-30">
-      <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={scrollCommunityTop}
+        className="flex items-center gap-2 rounded-xl py-1 pr-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-bud-primary/40 active:opacity-90"
+        aria-label={activeTab === "community" ? "Scroll community to top" : "Bud"}
+      >
         <span className="text-bud-primary" aria-hidden>
           <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2c-1.5 0-2.8.4-3.9 1.1A4.5 4.5 0 005 3.5C3.5 3.5 2 5 2 7v1c0 3.5 3 7 4 8s2.5 2 6 2 5-1 6-2 4-4.5 4-8V7c0-2-1.5-3.5-3-3.5-.6 0-1.2.2-1.7.6A6.3 6.3 0 0012 2zm-1 5.5c.8 0 1.5.7 1.5 1.5S11.8 10.5 11 10.5 9.5 9.8 9.5 9s.7-1.5 1.5-1.5zm3 0c.8 0 1.5.7 1.5 1.5S15.8 10.5 15 10.5 13.5 9.8 13.5 9s.7-1.5 1.5-1.5z" />
@@ -30,7 +51,7 @@ function AppHeader({ onNotifications }: { onNotifications: () => void }) {
         <span className="font-headline text-2xl font-extrabold text-bud-text tracking-tight">
           Bud
         </span>
-      </div>
+      </button>
       <button
         type="button"
         aria-label="Notifications"
@@ -63,6 +84,7 @@ function AppHeader({ onNotifications }: { onNotifications: () => void }) {
 
 /** Full tabbed app from team `main` (Leaflet map, stores, auth). Wrapped by `PhoneFrame` + routes in `App.tsx`. */
 export function MainShell() {
+  const communityScrollRef = useRef<HTMLDivElement | null>(null);
   const activeTab = useUiStore((s) => s.activeTab);
   const setActiveTab = useUiStore((s) => s.setActiveTab);
   const selectedPetId = useUiStore((s) => s.selectedPetId);
@@ -148,30 +170,37 @@ export function MainShell() {
         <OfflineBanner />
 
         {!selectedPet && !showAuth && !showNotifications && (
-          <AppHeader onNotifications={() => setShowNotifications(true)} />
+          <AppHeader
+            activeTab={activeTab}
+            communityScrollRef={communityScrollRef}
+            onNotifications={() => setShowNotifications(true)}
+          />
         )}
 
         <div className="flex-1 min-h-0 flex flex-col relative transition-opacity duration-200 ease-out">
           {activeTab === "community" && (
-            <div className="flex-1 min-h-0 overflow-y-auto pb-28">
+            <div
+              ref={communityScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto pb-28 bud-tab-fade"
+            >
               <CommunityBoard onSelectPet={openPet} onRequestAuth={requestAuth} />
             </div>
           )}
 
           {activeTab === "map" && (
-            <div className="flex-1 min-h-0 flex flex-col pb-24">
+            <div className="flex-1 min-h-0 flex flex-col pb-24 bud-tab-fade">
               <MapView onSelectPet={openPet} />
             </div>
           )}
 
           {activeTab === "report" && (
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto bud-tab-fade">
               <ReportLostPet onRequestAuth={requestAuth} />
             </div>
           )}
 
           {activeTab === "profile" && (
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto bud-tab-fade">
               <Profile onRequestAuth={requestAuth} onSelectPet={openPet} />
             </div>
           )}

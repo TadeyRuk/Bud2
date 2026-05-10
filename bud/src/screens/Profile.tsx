@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { usePetStore, type Pet } from "../stores/petStore";
 import { resizeImage, uploadAvatar } from "../lib/storage";
 import { showError, showSuccess } from "../lib/api";
 import { StatusBadge } from "../components/StatusBadge";
+import { getOnboardingProfile, roleLabel } from "../lib/onboardingProfile";
 
 type ProfileProps = {
   onRequestAuth: () => void;
@@ -11,11 +12,14 @@ type ProfileProps = {
 };
 
 export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
+  const onboardingLocal = useMemo(() => getOnboardingProfile(), []);
   const { user, profile, signOut, fetchProfile, updateProfile } = useAuthStore();
   const pets = usePetStore((s) => s.pets);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editBarangay, setEditBarangay] = useState("");
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -28,6 +32,8 @@ export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
     if (profile) {
       setEditName(profile.display_name);
       setEditBio(profile.bio);
+      setEditPhone(profile.phone ?? "");
+      setEditBarangay(profile.barangay ?? "");
     }
   }, [profile]);
 
@@ -53,6 +59,8 @@ export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
     const result = await updateProfile({
       display_name: editName.trim(),
       bio: editBio.trim(),
+      phone: editPhone.trim(),
+      barangay: editBarangay.trim(),
     });
     if (result.error) {
       showError(result.error);
@@ -128,6 +136,21 @@ export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
               rows={2}
               className="w-full text-center rounded-lg bg-bud-surface-well px-3 py-2 font-body text-sm text-bud-text-muted outline-none focus:ring-2 focus:ring-bud-primary/30 resize-none"
             />
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="Phone (optional)"
+              value={editPhone}
+              onChange={(e) => setEditPhone(e.target.value)}
+              className="w-full rounded-lg bg-bud-surface-well px-3 py-2 font-body text-sm text-bud-text outline-none focus:ring-2 focus:ring-bud-primary/30 placeholder:text-bud-text-muted/60"
+            />
+            <input
+              placeholder="Barangay / neighborhood"
+              value={editBarangay}
+              onChange={(e) => setEditBarangay(e.target.value)}
+              className="w-full rounded-lg bg-bud-surface-well px-3 py-2 font-body text-sm text-bud-text outline-none focus:ring-2 focus:ring-bud-primary/30 placeholder:text-bud-text-muted/60"
+            />
             <div className="flex gap-2">
               <button
                 type="button"
@@ -150,6 +173,12 @@ export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
             <h1 className="font-headline text-2xl font-bold text-bud-text mt-4">
               {profile?.display_name || user.email}
             </h1>
+            {(profile?.phone || profile?.barangay) && (
+              <div className="mt-2 space-y-0.5 font-body text-xs text-bud-text-muted max-w-xs">
+                {profile.phone ? <p>Phone: {profile.phone}</p> : null}
+                {profile.barangay ? <p>Area: {profile.barangay}</p> : null}
+              </div>
+            )}
             <p className="font-body text-sm text-bud-text-muted mt-1 max-w-xs">
               {profile?.bio || "Neighbor & volunteer. Here to help reunite pets with their families."}
             </p>
@@ -163,6 +192,18 @@ export function Profile({ onRequestAuth, onSelectPet }: ProfileProps) {
           </>
         )}
       </div>
+
+      {onboardingLocal && (
+        <section className="bg-bud-card rounded-2xl p-4 shadow-ambient">
+          <h2 className="font-headline text-sm font-bold text-bud-text">Your Bud setup</h2>
+          <span className="mt-2 inline-flex rounded-full bg-bud-surface-well px-3 py-1 font-body text-xs font-semibold text-bud-accent">
+            {roleLabel(onboardingLocal.role)}
+          </span>
+          <p className="mt-2 font-body text-xs text-bud-text-muted">
+            {[onboardingLocal.barangay, onboardingLocal.city].filter(Boolean).join(", ") || "Local area not set"}
+          </p>
+        </section>
+      )}
 
       {myPets.length > 0 && (
         <section>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -9,13 +9,13 @@ type MapViewProps = {
   onSelectPet: (pet: StorePet) => void;
 };
 
-const DEFAULT_CENTER: [number, number] = [12.8797, 121.7740];
+const DEFAULT_CENTER: [number, number] = [12.8797, 121.774];
 const DEFAULT_ZOOM = 5;
 const FALLBACK_MARKER_CENTER: [number, number] = [14.5995, 120.9842];
 const FALLBACK_MARKER_SPACING = 0.006;
 
 function PinMarkerHtml({ pet }: { pet: StorePet }) {
-  const bubbleColor = pet.status === "LOST" ? "#C1440E" : "#005763";
+  const bubbleColor = pet.status === "LOST" ? "#8B3A15" : "#005763";
   const imageUrl =
     pet.image_url ||
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23e8e5dc'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
@@ -136,8 +136,13 @@ function getMarkerPosition(pet: StorePet, index: number): [number, number] {
   ];
 }
 
-function PetMarkers({ onSelectPet }: MapViewProps) {
-  const pets = usePetStore((s) => s.pets);
+function PetMarkers({
+  pets,
+  onSelectPet,
+}: {
+  pets: StorePet[];
+  onSelectPet: (pet: StorePet) => void;
+}) {
   const fetchPets = usePetStore((s) => s.fetchPets);
 
   useEffect(() => {
@@ -160,12 +165,40 @@ function PetMarkers({ onSelectPet }: MapViewProps) {
 }
 
 export function MapView({ onSelectPet }: MapViewProps) {
+  const pets = usePetStore((s) => s.pets);
+  const [mapSearch, setMapSearch] = useState("");
+
+  const filteredPets = useMemo(() => {
+    const q = mapSearch.trim().toLowerCase();
+    if (!q) return pets;
+    return pets.filter((p) => {
+      const breed = (p.breed ?? "").toLowerCase();
+      const desc = (p.description ?? "").toLowerCase();
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.location_text.toLowerCase().includes(q) ||
+        breed.includes(q) ||
+        desc.includes(q)
+      );
+    });
+  }, [pets, mapSearch]);
+
   return (
     <div className="relative flex-1 min-h-0 w-full">
-      <div className="absolute top-4 left-3 right-3 z-[1000] pointer-events-none">
-        <p className="text-center font-headline text-sm font-bold text-bud-text drop-shadow-sm bg-bud-card/90 rounded-full py-1.5 mx-auto max-w-[220px] shadow-ambient pointer-events-auto">
+      <div className="pointer-events-none absolute top-4 left-3 right-3 z-[1000] flex flex-col items-center gap-2">
+        <p className="pointer-events-auto text-center font-headline text-sm font-bold text-bud-text drop-shadow-sm bg-bud-card/90 rounded-full py-1.5 px-4 shadow-ambient">
           Search Area Map
         </p>
+        <div className="pointer-events-auto w-full max-w-sm px-1">
+          <input
+            type="search"
+            value={mapSearch}
+            onChange={(e) => setMapSearch(e.target.value)}
+            placeholder="Filter by name, area, breed…"
+            aria-label="Filter pets on the map"
+            className="w-full rounded-full border border-bud-text-muted/10 bg-bud-card/95 px-4 py-2.5 font-body text-sm text-bud-text shadow-ambient outline-none backdrop-blur-sm placeholder:text-bud-text-muted/65 focus:ring-2 focus:ring-bud-primary/35"
+          />
+        </div>
       </div>
 
       <MapContainer
@@ -178,7 +211,7 @@ export function MapView({ onSelectPet }: MapViewProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <PetMarkers onSelectPet={onSelectPet} />
+        <PetMarkers pets={filteredPets} onSelectPet={onSelectPet} />
       </MapContainer>
     </div>
   );

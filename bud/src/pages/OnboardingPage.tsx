@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageCanvas } from "../components/PageCanvas";
+import { saveOnboardingProfile } from "../lib/onboardingProfile";
 import { colors, radius, shadows } from "../styles/tokens";
 
 type OnboardingState = {
@@ -43,10 +45,8 @@ export function OnboardingPage() {
   }, [state.city, state.name, step]);
 
   return (
-    <div
-      className="h-full min-h-0 overflow-y-auto px-5 pt-10 pb-10"
-      style={{ background: colors.background }}
-    >
+    <PageCanvas>
+      <div className="h-full min-h-0 px-5 pt-10 pb-10">
       <div className="mx-auto w-full" style={{ maxWidth: 430 }}>
         <div className="text-center">
           <div
@@ -406,8 +406,7 @@ export function OnboardingPage() {
                 boxShadow: shadows.card,
               }}
               onClick={() => {
-                // Demo: store locally so we can use later
-                window.localStorage.setItem("bud.onboarding", JSON.stringify(state));
+                saveOnboardingProfile(state);
                 navigate("/app");
               }}
             >
@@ -416,7 +415,8 @@ export function OnboardingPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </PageCanvas>
   );
 }
 

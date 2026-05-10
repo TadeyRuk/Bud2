@@ -28,7 +28,7 @@ function TabButton({
       aria-current={isActive ? "page" : undefined}
       className={`flex flex-col items-center justify-center gap-0.5 w-full py-2 rounded-full transition-all duration-200 active:scale-95 ${
         isActive
-          ? "bg-bud-primary text-white shadow-md"
+          ? "bg-bud-primary text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_6px_18px_rgba(139,58,21,0.45)]"
           : "text-zinc-400 hover:text-white"
       }`}
     >
@@ -43,7 +43,7 @@ function TabButton({
 export function BottomNav({ active, onChange }: BottomNavProps) {
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-40 bg-bud-nav px-1 pt-2 pb-6 rounded-t-3xl shadow-[0_-8px_24px_rgba(0,0,0,0.35)]"
+      className="absolute bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-bud-nav/90 px-1 pt-2 pb-6 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl shadow-[0_-12px_36px_rgba(0,0,0,0.42)]"
       aria-label="Main"
     >
       <div className="grid grid-cols-4 items-end gap-0 relative">
@@ -102,8 +102,8 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             type="button"
             onClick={() => onChange("report")}
             aria-label="Report lost pet"
-            className={`absolute -top-9 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-bud-primary text-white shadow-fab flex items-center justify-center transition-transform duration-200 active:scale-95 ring-4 ring-bud-nav ${
-              active === "report" ? "ring-white/20 scale-105" : ""
+            className={`absolute -top-9 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-bud-primary text-white shadow-fab flex items-center justify-center transition-transform duration-200 active:scale-95 ring-4 ring-bud-nav ring-offset-0 ${
+              active === "report" ? "ring-white/25 scale-105 shadow-[0_10px_28px_rgba(139,58,21,0.55)]" : ""
             }`}
           >
             <svg
