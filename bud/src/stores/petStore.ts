@@ -5,7 +5,7 @@ import { supabase, supabaseConfigured } from "../lib/supabase";
 import { normalizeError } from "../lib/api";
 import { enqueue, dequeue, peekAll, getBlob } from "../lib/offlineQueue";
 import { uploadPetPhoto, resizeImage } from "../lib/storage";
-import { DEMO_PETS } from "../data/pets";
+import { DEMO_PETS, DEMO_REPORTER_ID } from "../data/pets";
 
 export type Pet = DbPet & {
   syncing?: boolean;
@@ -31,7 +31,7 @@ const PAGE_SIZE = 100;
 function mapDemoPets(): Pet[] {
   return DEMO_PETS.map((d) => ({
     id: d.id,
-    reporter_id: "",
+    reporter_id: DEMO_REPORTER_ID,
     name: d.name,
     breed: d.breed ?? null,
     color: d.color,

@@ -1,6 +1,9 @@
 export type PetStatus = "LOST" | "FOUND";
 export type PetType = "dog" | "cat" | "other";
 
+/** Marks seeded demo rows so they are not shown as the signed-out user's reports. */
+export const DEMO_REPORTER_ID = "__bud_demo__";
+
 /** Seed rows used by petStore / Supabase fallback (matches backend merge). */
 export type LegacyPet = {
   id: string;
@@ -34,7 +37,7 @@ export const DEMO_PETS: LegacyPet[] = [
     location: "Near San Park",
     date: "Today · 0.8 mi away",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBS09qsZ5-IfFOypkJJQZwkFWrwY6TfmYrS3Wwch4lSNJiz-JdYaMJEM5DOQn70blOQHjK-RTxvcjvEnEs9WvFDmOjJFvJhASgqyenI_YZJJY-f7Wlt5mpcP9rCNJ4JSZ8DA4tCyERo2bNXX2FLsigA7YYSXDr3gY4Jnl2nTrMzTAdsNrQKW5B09zY_x29XanZsLSwDk0z8u0fwpPEW05F6HEd9G5vme0N5v3TIy_c2Ah39z21RX3UHRe9_pAoxgFTaS3tkbsHqX3n1",
+      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=900&h=1125&fit=crop&q=82",
     description:
       "Barnaby is friendly but may be scared. He was last seen wearing a red collar with a silver tag. Please call if you spot him—he may respond to treats.",
     lat: 14.5995,
@@ -48,11 +51,11 @@ export const DEMO_PETS: LegacyPet[] = [
     furColor: "Orange tabby",
     gender: "Unknown",
     status: "FOUND",
-    type: "other",
+    type: "cat",
     location: "Key Location Street",
     date: "2 hrs ago",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDVgz3SqP1xSusxuVeTNJWbPLtY-VMqkKKWTnLnu0YQp-ukdt-_ddLvkIjVb1k78aE7yFJBSoZrRfsMl_0Oo6Wv0TddadEiH1uTteL9Kwx_tLWg4PLQSG6DPOMgG8v77xp_dPVQS98tXhFWs4ElrRfYB13-vsvxqx1boG6VOz4AbKZxYhyXcz8mmA40WZjxkO1zWyalfs9DyJ-xCy5AHAKFGhevQPKeriW3hO0_Fgxl97zoIxDMoKVsKxJlqaIZNue2y1Bbm2_9zA8m",
+      "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&h=1000&fit=crop&q=80",
     description:
       "Found near the bakery alley—calm but hungry. No collar. Community is holding the cat safely while searching for the owner.",
     lat: 14.601,
@@ -70,7 +73,7 @@ export const DEMO_PETS: LegacyPet[] = [
     location: "Reunited with family",
     date: "14 hrs search",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD3Qy4b90QLzov4ww2r2vz9pPUCdhNw8w0jvP7iYn7qV5zKZw9qE7hKio6kp6tBbZqngwuj7Yz5H-qfxsmiUwa5ydVT8ivP8GvNAYLxt0nkRb2LO0VTL1dLvzhXMzwCPvSHQUqrYqbjUknvTiLFZJWv1Buyob_7sm487lyGV7NjYYz0jPALbQsTOV4cvre609YNwQS-p0GbBFaqYRRZlp-BuDEOLN8bLYc0warxUQwiOi0OvQk6IkxTVFV-TSNFVPC6H63kLTOo3VvZ",
+      "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&h=1000&fit=crop&q=80",
     description:
       "Luna is home safe. Thank you to everyone who shared sightings and checked in—this is what community care looks like.",
     lat: 14.598,

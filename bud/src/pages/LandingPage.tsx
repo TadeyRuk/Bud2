@@ -1,25 +1,8 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PageCanvas } from "../components/PageCanvas";
+import { BudLogoMark } from "../components/BudLogoMark";
 import { colors, radius, shadows } from "../styles/tokens";
-
-function BudMark() {
-  return (
-    <div className="flex items-center justify-center gap-2">
-      <span aria-hidden style={{ color: colors.primary }}>
-        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2c-1.5 0-2.8.4-3.9 1.1A4.5 4.5 0 005 3.5C3.5 3.5 2 5 2 7v1c0 3.5 3 7 4 8s2.5 2 6 2 5-1 6-2 4-4.5 4-8V7c0-2-1.5-3.5-3-3.5-.6 0-1.2.2-1.7.6A6.3 6.3 0 0012 2zm-1 5.5c.8 0 1.5.7 1.5 1.5S11.8 10.5 11 10.5 9.5 9.8 9.5 9s.7-1.5 1.5-1.5zm3 0c.8 0 1.5.7 1.5 1.5S15.8 10.5 15 10.5 13.5 9.8 13.5 9s.7-1.5 1.5-1.5z" />
-        </svg>
-      </span>
-      <span
-        className="font-headline text-[34px] leading-none font-extrabold tracking-tight"
-        style={{ color: colors.onSurface }}
-      >
-        Bud
-      </span>
-    </div>
-  );
-}
 
 function FeaturePill({
   label,
@@ -72,7 +55,9 @@ export function LandingPage() {
 
       <div className="mx-auto w-full" style={{ maxWidth: 430 }}>
         <div style={{ animation: "bud-fade-up 520ms ease-out both" }}>
-          <BudMark />
+          <div className="flex justify-center">
+            <BudLogoMark variant="marketing" />
+          </div>
           <p
             className="mt-4 text-center font-body text-sm font-semibold"
             style={{ color: colors.onSurfaceVariant }}
@@ -272,13 +257,7 @@ export function LandingPage() {
 
           <Link
             to="/onboarding"
-            className="mt-4 inline-flex w-full justify-center font-headline font-extrabold py-3"
-            style={{
-              background: colors.primary,
-              color: colors.onPrimary,
-              borderRadius: radius.full,
-              boxShadow: shadows.card,
-            }}
+            className="mt-4 inline-flex w-full justify-center rounded-full bg-bud-primary py-3 font-headline font-extrabold text-white shadow-[0_2px_12px_rgba(28,26,23,0.07)] transition-[filter] hover:brightness-[1.04] active:brightness-[0.98]"
           >
             Get Started
           </Link>

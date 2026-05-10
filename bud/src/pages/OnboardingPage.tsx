@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageCanvas } from "../components/PageCanvas";
+import { BudLogoMark } from "../components/BudLogoMark";
 import { saveOnboardingProfile } from "../lib/onboardingProfile";
-import { colors, radius, shadows } from "../styles/tokens";
+import { colors, radius } from "../styles/tokens";
 
 type OnboardingState = {
   name: string;
@@ -13,15 +14,15 @@ type OnboardingState = {
 };
 
 function StepPill({ step, active }: { step: string; active: boolean }) {
+  if (active) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-bud-primary px-3 py-1 font-body text-xs font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]">
+        {step}
+      </span>
+    );
+  }
   return (
-    <span
-      className="inline-flex items-center px-3 py-1 font-body text-xs font-semibold"
-      style={{
-        background: active ? colors.primary : colors.surfaceContainerHighest,
-        color: active ? colors.onPrimary : colors.onSurfaceVariant,
-        borderRadius: radius.full,
-      }}
-    >
+    <span className="inline-flex items-center rounded-full border border-white/45 bg-white/38 px-3 py-1 font-body text-xs font-semibold text-bud-text/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-xl">
       {step}
     </span>
   );
@@ -46,23 +47,15 @@ export function OnboardingPage() {
 
   return (
     <PageCanvas>
-      <div className="h-full min-h-0 px-5 pt-10 pb-10">
+      <div className="relative z-10 h-full min-h-0 px-5 pb-10 pt-10">
       <div className="mx-auto w-full" style={{ maxWidth: 430 }}>
         <div className="text-center">
-          <div
-            className="inline-flex items-center justify-center px-4 py-2"
-            style={{
-              background: colors.surfaceContainerLow,
-              borderRadius: radius.full,
-              boxShadow: shadows.card,
-            }}
-          >
-            <span
-              className="font-headline text-sm font-extrabold"
-              style={{ color: colors.onSurface }}
-            >
-              Setup
-            </span>
+          <div className="inline-flex items-center justify-center rounded-full border border-white/55 bg-white/[0.52] px-4 py-2 shadow-[0_16px_44px_-14px_rgba(44,26,14,0.2)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/45">
+            <span className="font-headline text-sm font-extrabold text-bud-text">Setup</span>
+          </div>
+
+          <div className="mt-5 flex justify-center">
+            <BudLogoMark variant="marketing" />
           </div>
 
           <h1
@@ -82,14 +75,7 @@ export function OnboardingPage() {
           </div>
         </div>
 
-        <div
-          className="mt-7 px-5 py-5"
-          style={{
-            background: colors.surfaceCard,
-            borderRadius: radius.xl,
-            boxShadow: shadows.float,
-          }}
-        >
+        <div className="mt-7 rounded-[1.35rem] border border-white/55 bg-white/[0.54] px-5 py-5 shadow-[0_32px_72px_-22px_rgba(44,26,14,0.24)] backdrop-blur-[28px] backdrop-saturate-150 ring-1 ring-white/45">
           {step === 1 && (
             <div>
               <div
@@ -109,12 +95,7 @@ export function OnboardingPage() {
                   <input
                     type="text"
                     autoComplete="name"
-                    className="w-full font-body px-4 py-3 outline-none"
-                    style={{
-                      background: colors.surfaceContainerHighest,
-                      borderRadius: radius.xl,
-                      color: colors.onSurface,
-                    }}
+                    className="w-full rounded-xl border border-white/50 bg-white/82 px-4 py-3 font-body text-bud-text shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none backdrop-blur-sm placeholder:text-bud-text-muted/75"
                     placeholder="e.g., Sam"
                     value={state.name}
                     onChange={(e) =>
@@ -156,18 +137,11 @@ export function OnboardingPage() {
                       <button
                         key={r.id}
                         type="button"
-                        className="text-left px-4 py-3"
-                        style={{
-                          background: active
-                            ? colors.secondaryContainer
-                            : colors.surfaceContainerLow,
-                          borderRadius: radius.xl,
-                          boxShadow: active ? shadows.card : undefined,
-                          outline: active
-                            ? `2px solid ${colors.outlineVariant}`
-                            : "2px solid transparent",
-                          transform: active ? "translateY(-1px)" : undefined,
-                        }}
+                        className={`text-left rounded-xl border px-4 py-3 backdrop-blur-md transition-[background,border-color,transform] motion-safe:active:scale-[0.99] ${
+                          active
+                            ? "border-bud-primary/45 bg-white/58 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)] ring-2 ring-bud-primary/35"
+                            : "border-white/35 bg-white/26 hover:bg-white/38"
+                        }`}
                         onClick={() => setState((s) => ({ ...s, role: r.id }))}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -187,14 +161,7 @@ export function OnboardingPage() {
                           </div>
 
                           {active && (
-                            <span
-                              className="shrink-0 inline-flex items-center gap-1 px-2 py-1 font-body text-xs font-semibold"
-                              style={{
-                                background: colors.primary,
-                                color: colors.onPrimary,
-                                borderRadius: radius.full,
-                              }}
-                            >
+                            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-bud-primary px-2 py-1 font-body text-xs font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]">
                               <svg
                                 width="14"
                                 height="14"
@@ -245,12 +212,7 @@ export function OnboardingPage() {
                   </span>
                   <input
                     type="text"
-                    className="w-full font-body px-4 py-3 outline-none"
-                    style={{
-                      background: colors.surfaceContainerHighest,
-                      borderRadius: radius.xl,
-                      color: colors.onSurface,
-                    }}
+                    className="w-full rounded-xl border border-white/50 bg-white/82 px-4 py-3 font-body text-bud-text shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none backdrop-blur-sm placeholder:text-bud-text-muted/75"
                     placeholder="e.g., San Fernando"
                     value={state.city}
                     onChange={(e) =>
@@ -268,12 +230,7 @@ export function OnboardingPage() {
                   </span>
                   <input
                     type="text"
-                    className="w-full font-body px-4 py-3 outline-none"
-                    style={{
-                      background: colors.surfaceContainerHighest,
-                      borderRadius: radius.xl,
-                      color: colors.onSurface,
-                    }}
+                    className="w-full rounded-xl border border-white/50 bg-white/82 px-4 py-3 font-body text-bud-text shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none backdrop-blur-sm placeholder:text-bud-text-muted/75"
                     placeholder="e.g., Dolores"
                     value={state.barangay}
                     onChange={(e) =>
@@ -299,11 +256,7 @@ export function OnboardingPage() {
 
               <button
                 type="button"
-                className="mt-4 w-full flex items-center justify-between px-4 py-3"
-                style={{
-                  background: colors.surfaceContainerLow,
-                  borderRadius: radius.xl,
-                }}
+                className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/40 bg-white/32 px-4 py-3 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-colors hover:bg-white/42"
                 onClick={() =>
                   setState((s) => ({ ...s, notifications: !s.notifications }))
                 }
@@ -337,13 +290,7 @@ export function OnboardingPage() {
                 </span>
               </button>
 
-              <div
-                className="mt-4 px-4 py-3"
-                style={{
-                  background: colors.surfaceContainerHighest,
-                  borderRadius: radius.xl,
-                }}
-              >
+              <div className="mt-4 rounded-xl border border-white/35 bg-white/28 px-4 py-3 backdrop-blur-md">
                 <div className="font-body text-xs" style={{ color: colors.onSurfaceVariant }}>
                   Summary
                 </div>
@@ -362,12 +309,7 @@ export function OnboardingPage() {
         <div className="mt-5 flex items-center gap-3">
           <button
             type="button"
-            className="inline-flex w-full justify-center font-body font-semibold py-3"
-            style={{
-              background: colors.surfaceContainerLow,
-              color: colors.onSurface,
-              borderRadius: radius.full,
-            }}
+            className="inline-flex w-full justify-center rounded-full border border-white/45 bg-white/38 py-3 font-body font-semibold text-bud-text shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-xl transition-colors hover:bg-white/48"
             onClick={() => {
               if (step > 1) {
                 setStep((s) => (s > 1 ? ((s - 1) as 1 | 2) : s));
@@ -382,14 +324,9 @@ export function OnboardingPage() {
           {step < 3 ? (
             <button
               type="button"
-              className="inline-flex w-full justify-center font-headline font-extrabold py-3"
-              style={{
-                background: canContinue ? colors.primary : colors.primaryContainer,
-                color: colors.onPrimary,
-                borderRadius: radius.full,
-                boxShadow: shadows.card,
-                opacity: canContinue ? 1 : 0.55,
-              }}
+              className={`inline-flex w-full justify-center rounded-full bg-bud-primary py-3 font-headline font-extrabold text-white shadow-[0_2px_12px_rgba(28,26,23,0.07)] transition-[opacity,filter] hover:brightness-[1.03] disabled:pointer-events-none ${
+                canContinue ? "" : "opacity-45"
+              }`}
               disabled={!canContinue}
               onClick={() => setStep((s) => (s < 3 ? ((s + 1) as 2 | 3) : s))}
             >
@@ -398,13 +335,7 @@ export function OnboardingPage() {
           ) : (
             <button
               type="button"
-              className="inline-flex w-full justify-center font-headline font-extrabold py-3"
-              style={{
-                background: colors.primary,
-                color: colors.onPrimary,
-                borderRadius: radius.full,
-                boxShadow: shadows.card,
-              }}
+              className="inline-flex w-full justify-center rounded-full bg-bud-primary py-3 font-headline font-extrabold text-white shadow-[0_2px_12px_rgba(28,26,23,0.07)] transition-[filter] hover:brightness-[1.03]"
               onClick={() => {
                 saveOnboardingProfile(state);
                 navigate("/app");

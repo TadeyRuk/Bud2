@@ -1,21 +1,77 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePetStore } from "../stores/petStore";
-import { useAuthStore } from "../stores/authStore";
 import { showError, showSuccess } from "../lib/api";
 import { getOnboardingProfile } from "../lib/onboardingProfile";
 import type { PetType } from "../types/database";
 
 type ReportLostPetProps = {
-  onRequestAuth: () => void;
+  onRequestAuth?: () => void;
 };
 
 const TOTAL_STEPS = 4;
 
-export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
+const inputWell =
+  "w-full rounded-xl border border-white/40 bg-white/85 px-3 py-3 font-body text-sm text-bud-text outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-bud-primary/15 placeholder:text-bud-text-muted/70 focus:ring-2";
+
+function ChoiceRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <p className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">{label}</p>
+      <div className="mt-2 flex flex-wrap gap-2.5">{children}</div>
+    </div>
+  );
+}
+
+function ChoiceChip({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`relative min-h-[44px] rounded-[1rem] border px-4 py-2.5 font-body text-sm font-semibold outline-none transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-bud-primary/40 motion-safe:active:scale-[0.97] ${
+        selected
+          ? "z-[1] border-bud-primary bg-bud-primary text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.38),0_14px_32px_rgba(139,58,21,0.48)] ring-2 ring-white/85 ring-offset-[3px] ring-offset-white/40 motion-safe:scale-[1.045]"
+          : "border-bud-text-muted/22 bg-white/72 text-bud-text shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] motion-safe:hover:scale-[1.025] hover:border-bud-primary/50 hover:bg-white hover:shadow-[0_10px_26px_rgba(139,58,21,0.18)]"
+      }`}
+    >
+      <span className="flex items-center justify-center gap-2">
+        {selected ? (
+          <svg className="h-4 w-4 shrink-0 text-white/95" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M20 6L9 17l-5-5"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : null}
+        {children}
+      </span>
+    </button>
+  );
+}
+
+export function ReportLostPet(_props: ReportLostPetProps) {
   const onboardingSnapshot = useMemo(() => getOnboardingProfile(), []);
 
   const [step, setStep] = useState(1);
   const [petType, setPetType] = useState<PetType>("dog");
+  const [otherSpecies, setOtherSpecies] = useState("");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [traits, setTraits] = useState("");
@@ -26,7 +82,6 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const selectedFile = useRef<File | null>(null);
 
-  const user = useAuthStore((s) => s.user);
   const addPet = usePetStore((s) => s.addPet);
 
   useEffect(() => {
@@ -35,6 +90,10 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
     const combined = [o.barangay, o.city].filter(Boolean).join(", ");
     setLocation((prev) => (prev.trim() ? prev : combined));
   }, []);
+
+  useEffect(() => {
+    if (petType !== "other") setOtherSpecies("");
+  }, [petType]);
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -49,20 +108,23 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
   }
 
   function canAdvanceFrom(current: number): boolean {
-    if (current === 1) return name.trim().length > 0;
+    if (current === 1) {
+      const nameOk = name.trim().length > 0;
+      const otherOk = petType !== "other" || otherSpecies.trim().length > 0;
+      return nameOk && otherOk;
+    }
     if (current === 2) return true;
     if (current === 3) return location.trim().length > 0;
     return true;
   }
 
   async function submitReport() {
-    if (!user) {
-      onRequestAuth();
-      return;
-    }
-
     if (!name.trim()) {
       showError("Please enter the pet's name");
+      return;
+    }
+    if (petType === "other" && !otherSpecies.trim()) {
+      showError("Please describe the type of pet");
       return;
     }
     if (!location.trim()) {
@@ -75,7 +137,7 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
     const result = await addPet(
       {
         name: name.trim(),
-        breed: null,
+        breed: petType === "other" ? otherSpecies.trim() : null,
         color: color.trim() || "Unknown",
         fur_color: color.trim() || "Unknown",
         gender,
@@ -95,7 +157,7 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
     if (result.error) {
       showError(result.error);
     } else {
-      showSuccess("Report submitted! The community has been notified.");
+      showSuccess("Report submitted! Your pet appears on the community board.");
       setStep(1);
       setName("");
       setLocation("");
@@ -103,6 +165,7 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
       setColor("");
       setGender("Unknown");
       setPetType("dog");
+      setOtherSpecies("");
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
       selectedFile.current = null;
@@ -114,20 +177,23 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
     }
   }
 
+  const typeLabel =
+    petType === "dog" ? "Dog" : petType === "cat" ? "Cat" : `Other · ${otherSpecies.trim() || "—"}`;
+
   return (
-    <div className="px-5 pt-6 pb-28 space-y-8 transition-opacity duration-200 overflow-y-auto min-h-0">
-      <header className="pl-3 border-l-[6px] border-bud-primary">
-        <h1 className="font-headline text-4xl font-black tracking-tight text-bud-text leading-tight">
+    <div className="min-h-0 space-y-8 overflow-y-auto px-5 pb-28 pt-6 transition-opacity duration-200">
+      <header className="border-l-[6px] border-bud-primary pl-3">
+        <h1 className="font-headline text-4xl font-black leading-tight tracking-tight text-bud-text">
           Bring Them
           <br />
           <span className="text-bud-primary">Home.</span>
         </h1>
-        <p className="font-body text-bud-text-muted text-sm mt-3 max-w-[300px]">
+        <p className="mt-3 max-w-[300px] font-body text-sm text-bud-text-muted">
           Provide details about the pet you&apos;ve lost. The more accurate the information, the better our community
           can help.
         </p>
         {onboardingSnapshot?.name ? (
-          <p className="font-body text-xs text-bud-accent mt-2 max-w-[320px]">
+          <p className="mt-2 max-w-[320px] font-body text-xs text-bud-accent">
             From your Bud setup: <span className="font-semibold text-bud-text">{onboardingSnapshot.name}</span>
             {onboardingSnapshot.barangay ? (
               <>
@@ -155,40 +221,34 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
         Step {step} of {TOTAL_STEPS}
       </p>
 
-      {!user && (
-        <div className="bg-bud-surface-low rounded-2xl p-4 text-center">
-          <p className="font-body text-sm text-bud-text-muted mb-3">You need to sign in to submit a report.</p>
-          <button
-            type="button"
-            onClick={onRequestAuth}
-            className="bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-3 px-6 rounded-xl"
-          >
-            Sign In
-          </button>
-        </div>
-      )}
-
       <div className="space-y-6">
         {step === 1 && (
-          <section className="bg-bud-surface-low rounded-[1.75rem] p-5 flex flex-col gap-4 space-y-4">
-            <div>
-              <label htmlFor="pet-type" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
-                Pet type
-              </label>
-              <select
-                id="pet-type"
-                value={petType}
-                onChange={(e) => setPetType(e.target.value as PetType)}
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm outline-none focus:ring-2 focus:ring-bud-primary/30"
-              >
-                <option value="dog">Dog</option>
-                <option value="cat">Cat</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
+          <section className="flex flex-col gap-4 space-y-4 rounded-[1.75rem] border border-white/45 bg-white/40 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-xl">
+            <ChoiceRow label="Pet type">
+              {(["dog", "cat", "other"] as const).map((t) => (
+                <ChoiceChip key={t} selected={petType === t} onClick={() => setPetType(t)}>
+                  {t === "dog" ? "Dog" : t === "cat" ? "Cat" : "Other"}
+                </ChoiceChip>
+              ))}
+            </ChoiceRow>
+
+            {petType === "other" ? (
+              <div>
+                <label htmlFor="pet-other-type" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
+                  Describe
+                </label>
+                <input
+                  id="pet-other-type"
+                  value={otherSpecies}
+                  onChange={(e) => setOtherSpecies(e.target.value)}
+                  placeholder="Describe (e.g. rabbit, parrot, guinea pig)"
+                  className={`${inputWell} mt-2`}
+                />
+              </div>
+            ) : null}
 
             <div>
-              <label htmlFor="pet-name" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
+              <label htmlFor="pet-name" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
                 Pet name
               </label>
               <input
@@ -196,12 +256,12 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Barnaby"
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30"
+                className={`${inputWell} mt-2`}
               />
             </div>
 
             <div>
-              <label htmlFor="pet-color" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
+              <label htmlFor="pet-color" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
                 Color / collar
               </label>
               <input
@@ -209,43 +269,40 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="e.g. Golden, Red Collar"
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30"
+                className={`${inputWell} mt-2`}
               />
             </div>
 
-            <div>
-              <label htmlFor="pet-gender" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
-                Gender
-              </label>
-              <select
-                id="pet-gender"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm outline-none focus:ring-2 focus:ring-bud-primary/30"
-              >
-                <option value="Unknown">Unknown</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
+            <ChoiceRow label="Gender">
+              {(["Unknown", "Male", "Female"] as const).map((g) => (
+                <ChoiceChip key={g} selected={gender === g} onClick={() => setGender(g)}>
+                  {g}
+                </ChoiceChip>
+              ))}
+            </ChoiceRow>
           </section>
         )}
 
         {step === 2 && (
-          <section className="bg-bud-surface-low rounded-[1.75rem] p-5 flex flex-col gap-4">
+          <section className="flex flex-col gap-4 rounded-[1.75rem] border border-white/45 bg-white/40 p-5 backdrop-blur-xl">
             <div>
               <p className="font-body text-sm font-semibold text-bud-text">Photo</p>
-              <p className="font-body text-xs text-bud-text-muted mt-1">
+              <p className="mt-1 font-body text-xs text-bud-text-muted">
                 A clear face shot helps neighbors recognize them quickly.
               </p>
             </div>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="w-full aspect-[4/3] max-h-44 rounded-2xl bg-bud-surface-well flex items-center justify-center overflow-hidden border-2 border-dashed border-bud-text-muted/25"
+              aria-pressed={Boolean(preview)}
+              className={`flex aspect-[4/3] max-h-44 w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-white/80 transition-all duration-200 ease-out motion-safe:active:scale-[0.99] ${
+                preview
+                  ? "border-bud-primary/55 shadow-[0_12px_36px_rgba(139,58,21,0.22)] ring-2 ring-bud-primary/30 ring-offset-2 ring-offset-white/50 motion-safe:scale-[1.01]"
+                  : "border-bud-text-muted/22 hover:border-bud-primary/35 hover:shadow-[0_8px_24px_rgba(139,58,21,0.1)]"
+              }`}
             >
               {preview ? (
-                <img src={preview} alt="Pet preview" className="w-full h-full object-cover" />
+                <img src={preview} alt="Pet preview" className="h-full w-full object-cover" />
               ) : (
                 <span className="font-body text-sm text-bud-text-muted">Tap to upload a photo</span>
               )}
@@ -262,9 +319,9 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
         )}
 
         {step === 3 && (
-          <section className="bg-bud-surface-low rounded-[1.75rem] p-5 flex flex-col gap-4">
+          <section className="flex flex-col gap-4 rounded-[1.75rem] border border-white/45 bg-white/40 p-5 backdrop-blur-xl">
             <div>
-              <label htmlFor="last-seen" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
+              <label htmlFor="last-seen" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
                 Last seen location
               </label>
               <input
@@ -272,12 +329,12 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Street, landmark, or barangay"
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30"
+                className={`${inputWell} mt-2`}
               />
             </div>
 
             <div>
-              <label htmlFor="traits" className="font-body text-xs font-semibold text-bud-text uppercase tracking-wide">
+              <label htmlFor="traits" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
                 Description / traits
               </label>
               <textarea
@@ -286,20 +343,20 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
                 onChange={(e) => setTraits(e.target.value)}
                 rows={4}
                 placeholder="Collar color, markings, behavior, anything that helps identify them..."
-                className="mt-2 w-full rounded-lg bg-bud-surface-well px-3 py-3 font-body text-bud-text text-sm placeholder:text-bud-text-muted/60 outline-none focus:ring-2 focus:ring-bud-primary/30 resize-none"
+                className={`${inputWell} mt-2 resize-none`}
               />
             </div>
           </section>
         )}
 
         {step === 4 && (
-          <section className="bg-bud-card rounded-[1.75rem] p-5 shadow-ambient space-y-3 font-body text-sm text-bud-text">
+          <section className="space-y-3 rounded-[1.75rem] border border-white/50 bg-bud-card p-5 font-body text-sm text-bud-text shadow-ambient">
             <p className="font-headline text-base font-bold text-bud-text">Review</p>
             <p>
               <span className="text-bud-text-muted">Name:</span> {name || "—"}
             </p>
             <p>
-              <span className="text-bud-text-muted">Type:</span> {petType}
+              <span className="text-bud-text-muted">Type:</span> {typeLabel}
             </p>
             <p>
               <span className="text-bud-text-muted">Color:</span> {color || "—"}
@@ -327,7 +384,7 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
               <button
                 type="button"
                 onClick={() => setStep((s) => Math.max(1, s - 1))}
-                className="flex-1 border-2 border-bud-text-muted/25 text-bud-text font-body text-sm font-bold py-3.5 rounded-xl"
+                className="flex-1 rounded-xl border-2 border-bud-text-muted/20 py-3.5 font-body text-sm font-bold text-bud-text"
               >
                 Back
               </button>
@@ -339,16 +396,16 @@ export function ReportLostPet({ onRequestAuth }: ReportLostPetProps) {
                 type="button"
                 disabled={!canAdvanceFrom(step)}
                 onClick={() => setStep((s) => Math.min(TOTAL_STEPS, s + 1))}
-                className="flex-1 bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-ambient disabled:opacity-50"
+                className="flex-1 rounded-xl bg-bud-primary py-3.5 font-body text-sm font-bold uppercase tracking-widest text-white shadow-ambient disabled:opacity-45"
               >
                 Next
               </button>
             ) : (
               <button
                 type="button"
-                disabled={submitting || !user}
+                disabled={submitting}
                 onClick={() => void submitReport()}
-                className="flex-1 bg-bud-primary text-white font-body text-sm font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-ambient active:scale-[0.99] transition-transform disabled:opacity-60"
+                className="flex-1 rounded-xl bg-bud-primary py-3.5 font-body text-sm font-bold uppercase tracking-widest text-white shadow-ambient transition-transform active:scale-[0.99] disabled:opacity-60"
               >
                 {submitting ? "Submitting…" : "Submit Report"}
               </button>

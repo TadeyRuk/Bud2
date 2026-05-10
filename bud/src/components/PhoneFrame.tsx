@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppBubbleBackground } from "./AppBubbleBackground";
 
 type PhoneFrameProps = {
   children: ReactNode;
@@ -6,12 +7,13 @@ type PhoneFrameProps = {
 
 export function PhoneFrame({ children }: PhoneFrameProps) {
   return (
-    <div className="min-h-dvh bg-[#111] flex items-stretch justify-center sm:items-center p-0 sm:p-4 md:p-6">
+    <div className="flex min-h-dvh items-stretch justify-center bg-[#111] p-0 sm:items-center sm:p-4 md:p-6">
       <div
-        className="relative flex h-dvh w-full max-h-none flex-col overflow-hidden bg-bud-bg shadow-phone sm:h-[min(844px,calc(100dvh-2rem))] sm:max-h-[844px] sm:w-full sm:max-w-[430px] sm:rounded-[40px] sm:ring-1 sm:ring-white/10"
+        className="relative flex h-dvh w-full max-h-none flex-col overflow-hidden shadow-phone sm:h-[min(844px,calc(100dvh-2rem))] sm:max-h-[844px] sm:w-full sm:max-w-[430px] sm:rounded-[40px] sm:ring-1 sm:ring-white/10"
         role="presentation"
       >
-        {children}
+        <AppBubbleBackground />
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</div>
       </div>
     </div>
   );

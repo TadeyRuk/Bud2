@@ -26,16 +26,14 @@ function TabButton({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-current={isActive ? "page" : undefined}
-      className={`flex flex-col items-center justify-center gap-0.5 w-full py-2 rounded-full transition-all duration-200 active:scale-95 ${
+      className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0 rounded-full px-1 py-1 transition-all duration-200 active:scale-95 ${
         isActive
           ? "bg-bud-primary text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_6px_18px_rgba(139,58,21,0.45)]"
-          : "text-zinc-400 hover:text-white"
+          : "text-bud-text/72 hover:bg-white/45 hover:text-bud-text"
       }`}
     >
       {icon}
-      <span className="font-body text-[10px] font-semibold uppercase tracking-widest">
-        {label}
-      </span>
+      <span className="font-body text-[9px] font-semibold uppercase tracking-wider">{label}</span>
     </button>
   );
 }
@@ -43,11 +41,11 @@ function TabButton({
 export function BottomNav({ active, onChange }: BottomNavProps) {
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-bud-nav/90 px-1 pt-2 pb-6 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl shadow-[0_-12px_36px_rgba(0,0,0,0.42)]"
+      className="pointer-events-none absolute bottom-5 left-1/2 z-40 w-[min(20.5rem,calc(100%-2.25rem))] -translate-x-1/2 px-0"
       aria-label="Main"
     >
-      <div className="grid grid-cols-4 items-end gap-0 relative">
-        <div className="flex justify-center">
+      <div className="pointer-events-auto rounded-full border border-white/55 bg-white/[0.26] px-1 py-1 shadow-[0_16px_44px_rgba(44,26,14,0.14),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/35">
+        <div className="relative grid grid-cols-4 items-end gap-0">
           <TabButton
             label="Community"
             ariaLabel="Community board"
@@ -55,7 +53,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             onClick={() => onChange("community")}
             icon={
               <svg
-                className="w-6 h-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.8}
@@ -70,9 +68,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               </svg>
             }
           />
-        </div>
 
-        <div className="flex justify-center">
           <TabButton
             label="Map"
             ariaLabel="Map view"
@@ -80,7 +76,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             onClick={() => onChange("map")}
             icon={
               <svg
-                className="w-6 h-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.8}
@@ -95,42 +91,38 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               </svg>
             }
           />
-        </div>
 
-        <div className="flex flex-col items-center justify-end relative min-h-[52px]">
-          <button
-            type="button"
-            onClick={() => onChange("report")}
-            aria-label="Report lost pet"
-            className={`absolute -top-9 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-bud-primary text-white shadow-fab flex items-center justify-center transition-transform duration-200 active:scale-95 ring-4 ring-bud-nav ring-offset-0 ${
-              active === "report" ? "ring-white/25 scale-105 shadow-[0_10px_28px_rgba(139,58,21,0.55)]" : ""
-            }`}
-          >
-            <svg
-              className="w-7 h-7"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.2}
-              stroke="currentColor"
-              aria-hidden
+          <div className="relative flex min-h-[44px] flex-col items-center justify-end">
+            <button
+              type="button"
+              onClick={() => onChange("report")}
+              aria-label="Report lost pet"
+              className={`absolute -top-7 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border-0 bg-bud-primary/[0.72] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.42),0_10px_28px_rgba(139,58,21,0.34)] backdrop-blur-2xl backdrop-saturate-150 transition-transform duration-200 active:scale-95 ${
+                active === "report"
+                  ? "scale-105 bg-bud-primary/[0.88] shadow-[inset_0_1px_0_rgba(255,255,255,0.48),0_12px_34px_rgba(139,58,21,0.42)]"
+                  : ""
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </button>
-          <span
-            className={`font-body text-[10px] font-semibold uppercase tracking-widest pb-1 ${
-              active === "report" ? "text-bud-primary" : "text-zinc-500"
-            }`}
-          >
-            Report
-          </span>
-        </div>
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.2}
+                stroke="currentColor"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </button>
+            <span
+              className={`pb-0.5 font-body text-[9px] font-semibold uppercase tracking-wider ${
+                active === "report" ? "text-bud-primary" : "text-bud-text/65"
+              }`}
+            >
+              Report
+            </span>
+          </div>
 
-        <div className="flex justify-center">
           <TabButton
             label="Profile"
             ariaLabel="Profile"
@@ -138,7 +130,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             onClick={() => onChange("profile")}
             icon={
               <svg
-                className="w-6 h-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.8}

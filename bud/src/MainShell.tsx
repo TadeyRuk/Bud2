@@ -15,6 +15,7 @@ import { useAuthStore } from "./stores/authStore";
 import { useNotificationStore } from "./stores/notificationStore";
 import { useUiStore } from "./stores/uiStore";
 import { useNetworkStatus } from "./lib/networkStatus";
+import { BudLogoMark } from "./components/BudLogoMark";
 
 function AppHeader({
   activeTab,
@@ -36,30 +37,23 @@ function AppHeader({
   }, [activeTab, communityScrollRef]);
 
   return (
-    <header className="shrink-0 flex items-center justify-between px-4 pt-3 pb-2 bg-bud-bg/95 backdrop-blur-sm z-30">
+    <header className="shrink-0 z-30 flex items-center justify-between bg-transparent px-4 pb-3 pt-3">
       <button
         type="button"
         onClick={scrollCommunityTop}
-        className="flex items-center gap-2 rounded-xl py-1 pr-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-bud-primary/40 active:opacity-90"
+        className="-ml-0.5 rounded-lg py-1 text-left outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-bud-primary/40 active:opacity-85"
         aria-label={activeTab === "community" ? "Scroll community to top" : "Bud"}
       >
-        <span className="text-bud-primary" aria-hidden>
-          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2c-1.5 0-2.8.4-3.9 1.1A4.5 4.5 0 005 3.5C3.5 3.5 2 5 2 7v1c0 3.5 3 7 4 8s2.5 2 6 2 5-1 6-2 4-4.5 4-8V7c0-2-1.5-3.5-3-3.5-.6 0-1.2.2-1.7.6A6.3 6.3 0 0012 2zm-1 5.5c.8 0 1.5.7 1.5 1.5S11.8 10.5 11 10.5 9.5 9.8 9.5 9s.7-1.5 1.5-1.5zm3 0c.8 0 1.5.7 1.5 1.5S15.8 10.5 15 10.5 13.5 9.8 13.5 9s.7-1.5 1.5-1.5z" />
-          </svg>
-        </span>
-        <span className="font-headline text-2xl font-extrabold text-bud-text tracking-tight">
-          Bud
-        </span>
+        <BudLogoMark variant="header" />
       </button>
       <button
         type="button"
         aria-label="Notifications"
         onClick={onNotifications}
-        className="relative p-2 rounded-full text-bud-primary hover:bg-bud-surface-low transition-colors"
+        className="relative rounded-full border border-white/45 bg-white/40 p-2 text-bud-primary shadow-sm backdrop-blur-md transition-colors hover:bg-white/55"
       >
         <svg
-          className="w-6 h-6"
+          className="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.8}
@@ -73,7 +67,7 @@ function AppHeader({
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -82,7 +76,7 @@ function AppHeader({
   );
 }
 
-/** Full tabbed app from team `main` (Leaflet map, stores, auth). Wrapped by `PhoneFrame` + routes in `App.tsx`. */
+/** Full tabbed app — wrapped by `PhoneFrame` + routes in `App.tsx`. */
 export function MainShell() {
   const communityScrollRef = useRef<HTMLDivElement | null>(null);
   const activeTab = useUiStore((s) => s.activeTab);
@@ -108,9 +102,7 @@ export function MainShell() {
 
   const isOnline = useNetworkStatus();
 
-  const selectedPet = selectedPetId
-    ? pets.find((p) => p.id === selectedPetId)
-    : undefined;
+  const selectedPet = selectedPetId ? pets.find((p) => p.id === selectedPetId) : undefined;
 
   useEffect(() => {
     initialize();
@@ -166,59 +158,66 @@ export function MainShell() {
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col h-full min-h-0 relative bg-bud-bg">
+      <div className="relative flex h-full min-h-0 flex-1 flex-col">
         <OfflineBanner />
 
-        {!selectedPet && !showAuth && !showNotifications && (
-          <AppHeader
-            activeTab={activeTab}
-            communityScrollRef={communityScrollRef}
-            onNotifications={() => setShowNotifications(true)}
-          />
-        )}
-
-        <div className="flex-1 min-h-0 flex flex-col relative transition-opacity duration-200 ease-out">
-          {activeTab === "community" && (
+        <div className="relative flex min-h-0 flex-1 flex-col transition-opacity duration-200 ease-out">
+          {activeTab === "community" ? (
             <div
               ref={communityScrollRef}
-              className="flex-1 min-h-0 overflow-y-auto pb-28 bud-tab-fade"
+              className="bud-tab-fade flex min-h-0 flex-1 flex-col overflow-y-auto pb-[5.25rem]"
             >
+              {!selectedPet && !showAuth && !showNotifications && (
+                <AppHeader
+                  activeTab={activeTab}
+                  communityScrollRef={communityScrollRef}
+                  onNotifications={() => setShowNotifications(true)}
+                />
+              )}
               <CommunityBoard onSelectPet={openPet} onRequestAuth={requestAuth} />
             </div>
-          )}
+          ) : null}
 
-          {activeTab === "map" && (
-            <div className="flex-1 min-h-0 flex flex-col pb-24 bud-tab-fade">
-              <MapView onSelectPet={openPet} />
-            </div>
-          )}
+          {!selectedPet && !showAuth && !showNotifications && activeTab !== "community" ? (
+            <AppHeader
+              activeTab={activeTab}
+              communityScrollRef={communityScrollRef}
+              onNotifications={() => setShowNotifications(true)}
+            />
+          ) : null}
 
-          {activeTab === "report" && (
-            <div className="flex-1 min-h-0 overflow-y-auto bud-tab-fade">
-              <ReportLostPet onRequestAuth={requestAuth} />
-            </div>
-          )}
+          {activeTab !== "community" ? (
+            <div className="flex min-h-0 flex-1 flex-col">
+              {activeTab === "map" && (
+                <div className="bud-tab-fade flex min-h-0 flex-1 flex-col pb-[5.25rem]">
+                  <MapView onSelectPet={openPet} />
+                </div>
+              )}
 
-          {activeTab === "profile" && (
-            <div className="flex-1 min-h-0 overflow-y-auto bud-tab-fade">
-              <Profile onRequestAuth={requestAuth} onSelectPet={openPet} />
+              {activeTab === "report" && (
+                <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
+                  <ReportLostPet onRequestAuth={requestAuth} />
+                </div>
+              )}
+
+              {activeTab === "profile" && (
+                <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
+                  <Profile onRequestAuth={requestAuth} onSelectPet={openPet} />
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
         </div>
 
         {!selectedPet && !showAuth && !showNotifications && (
           <BottomNav active={activeTab} onChange={onTabChange} />
         )}
 
-        {selectedPet && (
-          <PetDetail pet={selectedPet} onBack={closePet} onRequestAuth={requestAuth} />
-        )}
+        {selectedPet && <PetDetail pet={selectedPet} onBack={closePet} onRequestAuth={requestAuth} />}
 
         {showAuth && <AuthScreen onClose={() => setShowAuth(false)} />}
 
-        {showNotifications && (
-          <Notifications onClose={() => setShowNotifications(false)} />
-        )}
+        {showNotifications && <Notifications onClose={() => setShowNotifications(false)} />}
       </div>
 
       <Toaster
