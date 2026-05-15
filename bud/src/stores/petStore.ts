@@ -19,6 +19,8 @@ export type Pet = DbPet & {
   syncing?: boolean;
   date?: string;
   pin?: { topPct: number; leftPct: number };
+  /** Optional display line for “contact owner” (demo seed or future profile sync). */
+  owner_phone?: string | null;
 };
 
 function sortPetsNewestFirst(list: Pet[]): Pet[] {
@@ -77,6 +79,7 @@ function mapDemoPets(): Pet[] {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     date: d.date,
+    owner_phone: d.ownerContact ?? null,
   }));
 }
 
