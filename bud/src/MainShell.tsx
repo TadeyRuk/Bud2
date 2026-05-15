@@ -282,7 +282,7 @@ export function MainShell() {
 
         {selectedPet && <PetDetail pet={selectedPet} onBack={closePet} onRequestAuth={requestAuth} />}
 
-        {showAuth && <AuthScreen onClose={() => setShowAuth(false)} />}
+        {showAuth && <AuthScreen variant="overlay" onClose={() => setShowAuth(false)} />}
 
         {showNotifications && <Notifications onClose={() => setShowNotifications(false)} />}
 

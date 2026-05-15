@@ -36,6 +36,14 @@ export function LandingPage() {
   return (
     <PageCanvas>
       <div className="h-full min-h-0 px-5 pt-10 pb-10">
+      <div className="mb-4 flex justify-center">
+        <Link
+          to="/welcome"
+          className="font-body text-xs font-semibold text-bud-accent underline-offset-4 transition-opacity hover:opacity-80 motion-safe:hover:underline"
+        >
+          Account sign-in or sign-up
+        </Link>
+      </div>
       <style>{styleText}</style>
 
       <div className="mx-auto w-full" style={{ maxWidth: 430 }}>
