@@ -8,7 +8,7 @@ export function SplashPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const id = window.setTimeout(() => navigate("/app", { replace: true }), 1400);
+    const id = window.setTimeout(() => navigate("/welcome", { replace: true }), 1400);
     return () => window.clearTimeout(id);
   }, [navigate]);
 

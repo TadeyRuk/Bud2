@@ -8,6 +8,7 @@ import { useStatusHistoryStore } from "../stores/statusHistoryStore";
 import { DEMO_REPORTER_ID } from "../data/pets";
 import type { PetType } from "../types/database";
 import { LocationPickerMap, reverseGeocodeRoughAddress } from "../components/LocationPickerMap";
+import { ReportFlowBackdrop } from "../components/ReportFlowBackdrop";
 
 type GpsCaptureStatus = "idle" | "loading" | "captured" | "denied";
 
@@ -234,7 +235,9 @@ export function ReportLostPet() {
     petType === "dog" ? "Dog" : petType === "cat" ? "Cat" : `Other · ${otherSpecies.trim() || "—"}`;
 
   return (
-    <div className="min-h-0 space-y-8 overflow-y-auto px-5 pb-28 pt-6 transition-opacity duration-200">
+    <div className="relative min-h-0">
+      <ReportFlowBackdrop />
+      <div className="relative z-[1] min-h-0 space-y-8 overflow-y-auto px-5 pb-28 pt-6 transition-opacity duration-200">
       <header className="border-l-[6px] border-bud-primary pl-3">
         <h1 className="font-headline text-4xl font-black leading-tight tracking-tight text-bud-text">
           Bring Them
@@ -541,6 +544,7 @@ export function ReportLostPet() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

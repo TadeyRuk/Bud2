@@ -32,6 +32,46 @@
   background-size: 72px 72px;
 }
 
+@keyframes bud-report-flow-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(16px, -22px) scale(1.06);
+    opacity: 0.85;
+  }
+}
+
+@keyframes bud-report-flow-drift-reverse {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-18px, 14px) scale(1.04);
+    opacity: 0.78;
+  }
+}
+
+.bud-report-flow-drift {
+  animation: bud-report-flow-drift 22s ease-in-out infinite;
+}
+
+.bud-report-flow-drift-reverse {
+  animation: bud-report-flow-drift-reverse 26s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bud-report-flow-drift,
+  .bud-report-flow-drift-reverse {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
 @keyframes bud-tab-fade-in {
   from {
     opacity: 0;
