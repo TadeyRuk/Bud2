@@ -4,24 +4,9 @@ import { PageCanvas } from "../components/PageCanvas";
 import { BudLogoMark } from "../components/BudLogoMark";
 import { colors, radius, shadows } from "../styles/tokens";
 
-function FeaturePill({
-  label,
-  bg,
-  fg,
-}: {
-  label: string;
-  bg: string;
-  fg: string;
-}) {
+function FeaturePill({ label }: { label: string }) {
   return (
-    <span
-      className="inline-flex items-center px-3 py-1 font-body text-xs font-semibold"
-      style={{
-        background: bg,
-        color: fg,
-        borderRadius: radius.full,
-      }}
-    >
+    <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.08] px-3 py-1 font-body text-xs font-medium">
       {label}
     </span>
   );
@@ -100,21 +85,9 @@ export function LandingPage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <FeaturePill
-                label="Lost / Found badges"
-                bg={colors.lostBadge}
-                fg={colors.lostBadgeText}
-              />
-              <FeaturePill
-                label="Barangay-friendly"
-                bg={colors.secondaryContainer}
-                fg={colors.secondary}
-              />
-              <FeaturePill
-                label="Map sightings"
-                bg={colors.foundBadge}
-                fg={colors.foundBadgeText}
-              />
+              <FeaturePill label="Lost / Found badges" />
+              <FeaturePill label="Barangay-friendly" />
+              <FeaturePill label="Map sightings" />
             </div>
           </div>
         </div>
@@ -257,19 +230,14 @@ export function LandingPage() {
 
           <Link
             to="/onboarding"
-            className="mt-4 inline-flex w-full justify-center rounded-full bg-bud-primary py-3 font-headline font-extrabold text-white shadow-[0_2px_12px_rgba(28,26,23,0.07)] transition-[filter] hover:brightness-[1.04] active:brightness-[0.98]"
+            className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-full bg-bud-primary font-headline text-base font-extrabold text-white shadow-md transition-transform active:scale-95"
           >
             Get Started
           </Link>
 
           <Link
             to="/app"
-            className="mt-3 inline-flex w-full justify-center font-body font-semibold py-3"
-            style={{
-              background: colors.surfaceContainerLow,
-              color: colors.onSurface,
-              borderRadius: radius.full,
-            }}
+            className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-full bg-black/5 font-body text-sm font-semibold text-current transition-colors hover:bg-black/10"
           >
             Skip for now
           </Link>

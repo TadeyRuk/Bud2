@@ -1,4 +1,4 @@
-import toast from "react-hot-toast";
+import { showErrorToast, showSuccessToast } from "./budToast";
 
 export type ApiResult<T> = { data: T; error: null } | { data: null; error: string };
 
@@ -24,11 +24,11 @@ export function normalizeError(err: unknown): string {
 }
 
 export function showError(err: unknown) {
-  toast.error(normalizeError(err));
+  showErrorToast(normalizeError(err));
 }
 
 export function showSuccess(msg: string) {
-  toast.success(msg);
+  showSuccessToast(msg);
 }
 
 export async function withRetry<T>(

@@ -6,14 +6,46 @@ import { normalizeError } from "../lib/api";
 import { enqueue, dequeue, peekAll, getBlob } from "../lib/offlineQueue";
 import { uploadPetPhoto, resizeImage } from "../lib/storage";
 import { DEMO_PETS, DEMO_REPORTER_ID } from "../data/pets";
+<<<<<<< HEAD
 import { agentDebugLog } from "../lib/agentDebugLog";
 import { boundingBoxKm, haversineDistanceKm } from "../lib/geo";
+=======
+import {
+  canManagePetAsActor,
+  migrateLegacyGuestReporterIds,
+  resolveActorReporterId,
+  resolveReporterIdForNewPet,
+} from "../lib/petOwnership";
+
+const DEMO_PET_IDS = new Set(DEMO_PETS.map((d) => d.id));
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 
 export type Pet = DbPet & {
   syncing?: boolean;
   date?: string;
   pin?: { topPct: number; leftPct: number };
 };
+
+function sortPetsNewestFirst(list: Pet[]): Pet[] {
+  return [...list].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+/** Keeps optimistic rows that are not in the server page yet (e.g. still syncing). */
+function mergeWithPendingInserts(fetched: Pet[], previous: Pet[]): Pet[] {
+  const migrated = migrateLegacyGuestReporterIds(previous);
+  const fetchedIds = new Set(fetched.map((p) => p.id));
+  const pending = migrated.filter((p) => !fetchedIds.has(p.id) && p.syncing);
+  return sortPetsNewestFirst([...pending, ...fetched]);
+}
+
+/** Offline / demo mode: demo seed rows plus any user-created pets (non-demo ids). */
+function mergeDemoWithLocalReports(demos: Pet[], previous: Pet[]): Pet[] {
+  const migratedPrev = migrateLegacyGuestReporterIds(previous);
+  const locals = migratedPrev.filter((p) => !DEMO_PET_IDS.has(p.id));
+  return sortPetsNewestFirst([...locals, ...demos]);
+}
 
 type PetState = {
   pets: Pet[];
@@ -26,15 +58,14 @@ type PetState = {
   fetchNearbyPets: (lat: number, lng: number, radiusKm: number) => Promise<void>;
   clearNearbyPets: () => void;
   searchPets: (query: string) => Promise<void>;
-  addPet: (pet: Omit<DbPet, "id" | "created_at" | "updated_at" | "reporter_id">, photo?: File) => Promise<{ error: string | null }>;
+  addPet: (pet: Omit<DbPet, "id" | "created_at" | "updated_at" | "reporter_id">, photo?: File) => Promise<{ error: string | null; petId?: string }>;
   updatePetStatus: (petId: string, status: PetStatus) => Promise<{ error: string | null }>;
+  removePet: (petId: string) => Promise<{ error: string | null }>;
   subscribeRealtime: () => () => void;
   drainOfflineQueue: () => Promise<void>;
 };
 
 const PAGE_SIZE = 100;
-
-const DEMO_PET_IDS = new Set(DEMO_PETS.map((d) => d.id));
 
 function mapDemoPets(): Pet[] {
   return DEMO_PETS.map((d) => ({
@@ -134,7 +165,9 @@ export const usePetStore = create<PetState>()(
 
       fetchPets: async (reset = false) => {
         if (!supabaseConfigured) {
-          set({ pets: mapDemoPets(), loading: false, hasMore: false });
+          const demos = mapDemoPets();
+          const merged = mergeDemoWithLocalReports(demos, get().pets);
+          set({ pets: merged, loading: false, hasMore: false });
           return;
         }
 
@@ -163,9 +196,11 @@ export const usePetStore = create<PetState>()(
         }
 
         const fetched = (data as DbPet[]).map((d) => ({ ...d } as Pet));
-        const supabasePets = reset ? fetched : [...withoutDemoPets(current), ...fetched];
+        const supabaseCore = reset
+          ? mergeWithPendingInserts(fetched, get().pets)
+          : [...withoutDemoPets(current), ...fetched];
         set({
-          pets: mergeDemoPets(supabasePets),
+          pets: mergeDemoPets(supabaseCore),
           loading: false,
           hasMore: fetched.length === PAGE_SIZE,
         });
@@ -179,12 +214,17 @@ export const usePetStore = create<PetState>()(
         }
 
         if (!supabaseConfigured) {
-          const demos = mapDemoPets();
+          const merged = mergeDemoWithLocalReports(mapDemoPets(), get().pets);
           const lq = q.toLowerCase();
           set({
+<<<<<<< HEAD
             pets: demos.filter((p) => {
               const desc = (p.description ?? "").toLowerCase();
               return (
+=======
+            pets: merged.filter(
+              (p) =>
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
                 p.name.toLowerCase().includes(lq) ||
                 (p.breed?.toLowerCase().includes(lq) ?? false) ||
                 desc.includes(lq)
@@ -234,6 +274,7 @@ export const usePetStore = create<PetState>()(
 
       addPet: async (petData, photo) => {
         const tempId = crypto.randomUUID();
+<<<<<<< HEAD
         // #region agent log
         agentDebugLog({
           runId: "post-fix",
@@ -243,9 +284,12 @@ export const usePetStore = create<PetState>()(
           data: { supabaseConfigured, hasPhoto: Boolean(photo), keys: Object.keys(petData) },
         });
         // #endregion
+=======
+        const reporterId = await resolveReporterIdForNewPet();
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         const tempPet: Pet = {
           id: tempId,
-          reporter_id: "",
+          reporter_id: reporterId,
           ...petData,
           image_url: photo ? URL.createObjectURL(photo) : null,
           created_at: new Date().toISOString(),
@@ -259,7 +303,7 @@ export const usePetStore = create<PetState>()(
           set((s) => ({
             pets: s.pets.map((p) => (p.id === tempId ? { ...p, syncing: false } : p)),
           }));
-          return { error: null };
+          return { error: null, petId: tempId };
         }
 
         try {
@@ -274,7 +318,11 @@ export const usePetStore = create<PetState>()(
             .insert({
               ...petData,
               image_url: imageUrl,
+<<<<<<< HEAD
               reporter_id: "",
+=======
+              reporter_id: reporterId,
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
             })
             .select()
             .single();
@@ -305,7 +353,7 @@ export const usePetStore = create<PetState>()(
             ),
           }));
 
-          return { error: null };
+          return { error: null, petId: (data as DbPet).id };
         } catch (err) {
           // #region agent log
           agentDebugLog({
@@ -341,6 +389,15 @@ export const usePetStore = create<PetState>()(
       },
 
       updatePetStatus: async (petId, status) => {
+        const pet = get().pets.find((p) => p.id === petId);
+        if (!pet) {
+          return { error: "This listing is no longer available." };
+        }
+        const actor = await resolveActorReporterId();
+        if (!canManagePetAsActor(pet, actor)) {
+          return { error: "Only the person who posted this report can change its status." };
+        }
+
         set((s) => ({
           pets: s.pets.map((p) => (p.id === petId ? { ...p, status, syncing: true } : p)),
         }));
@@ -372,6 +429,38 @@ export const usePetStore = create<PetState>()(
         set((s) => ({
           pets: s.pets.map((p) => (p.id === petId ? { ...p, syncing: false } : p)),
         }));
+        return { error: null };
+      },
+
+      removePet: async (petId) => {
+        const pet = get().pets.find((p) => p.id === petId);
+        if (!pet) {
+          return { error: "This listing is no longer available." };
+        }
+        const actor = await resolveActorReporterId();
+        if (!canManagePetAsActor(pet, actor)) {
+          return { error: "Only the person who posted this report can remove it." };
+        }
+
+        const prior = get().pets;
+        set((s) => ({ pets: s.pets.filter((p) => p.id !== petId) }));
+
+        if (!supabaseConfigured) {
+          return { error: null };
+        }
+
+        const { error } = await supabase.from("pets").delete().eq("id", petId);
+
+        if (error) {
+          set({ pets: prior });
+          await enqueue({
+            table: "pets",
+            operation: "delete",
+            payload: { id: petId },
+          });
+          return { error: normalizeError(error) };
+        }
+
         return { error: null };
       },
 
@@ -441,6 +530,9 @@ export const usePetStore = create<PetState>()(
             } else if (item.operation === "update") {
               const { id, ...rest } = item.payload;
               await supabase.from("pets").update(rest).eq("id", id as string);
+            } else if (item.operation === "delete") {
+              const id = item.payload.id as string;
+              await supabase.from("pets").delete().eq("id", id);
             }
 
             await dequeue(item.id);
@@ -455,6 +547,18 @@ export const usePetStore = create<PetState>()(
       partialize: (state) => ({
         pets: state.pets.filter((p) => !p.syncing),
       }),
+      onRehydrateStorage: () => {
+        return (_state, error) => {
+          if (error || supabaseConfigured) return;
+          queueMicrotask(() => {
+            const pets = usePetStore.getState().pets;
+            const migrated = migrateLegacyGuestReporterIds(pets);
+            if (migrated.some((p, i) => p.reporter_id !== pets[i]?.reporter_id)) {
+              usePetStore.setState({ pets: migrated });
+            }
+          });
+        };
+      },
     }
   )
 );

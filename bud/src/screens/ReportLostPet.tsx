@@ -4,7 +4,11 @@ import type { GeoPosition } from "../hooks/useGeolocation";
 import { usePetStore } from "../stores/petStore";
 import { showError, showSuccess } from "../lib/api";
 import { getOnboardingProfile } from "../lib/onboardingProfile";
+import { useAuthStore } from "../stores/authStore";
+import { useStatusHistoryStore } from "../stores/statusHistoryStore";
+import { DEMO_REPORTER_ID } from "../data/pets";
 import type { PetType } from "../types/database";
+import { LocationPickerMap, reverseGeocodeRoughAddress } from "../components/LocationPickerMap";
 
 type GpsCaptureStatus = "idle" | "loading" | "captured" | "denied";
 
@@ -73,7 +77,10 @@ export function ReportLostPet() {
   const [petType, setPetType] = useState<PetType>("dog");
   const [otherSpecies, setOtherSpecies] = useState("");
   const [name, setName] = useState("");
+  const [pinLat, setPinLat] = useState<number | null>(null);
+  const [pinLng, setPinLng] = useState<number | null>(null);
   const [location, setLocation] = useState("");
+  const [landmark, setLandmark] = useState("");
   const [traits, setTraits] = useState("");
   const [color, setColor] = useState("");
   const [gender, setGender] = useState("Unknown");
@@ -83,20 +90,16 @@ export function ReportLostPet() {
   const [gpsStatus, setGpsStatus] = useState<GpsCaptureStatus>("idle");
   const fileRef = useRef<HTMLInputElement>(null);
   const selectedFile = useRef<File | null>(null);
+  /** When true, reverse-geocode must not overwrite the area label (user is editing). */
+  const locationEditedByUser = useRef(false);
 
   const addPet = usePetStore((s) => s.addPet);
-
-  useEffect(() => {
-    const o = getOnboardingProfile();
-    if (!o) return;
-    const combined = [o.barangay, o.city].filter(Boolean).join(", ");
-    setLocation((prev) => (prev.trim() ? prev : combined));
-  }, []);
 
   useEffect(() => {
     if (petType !== "other") setOtherSpecies("");
   }, [petType]);
 
+<<<<<<< HEAD
   function captureGps() {
     if (!isGeolocationSupported()) {
       setGpsStatus("denied");
@@ -117,6 +120,22 @@ export function ReportLostPet() {
       GEOLOCATION_OPTIONS
     );
   }
+=======
+  useEffect(() => {
+    if (pinLat == null || pinLng == null) return;
+    locationEditedByUser.current = false;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void reverseGeocodeRoughAddress(pinLat, pinLng).then((label) => {
+        if (!cancelled && !locationEditedByUser.current) setLocation(label);
+      });
+    }, 420);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [pinLat, pinLng]);
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -137,7 +156,7 @@ export function ReportLostPet() {
       return nameOk && otherOk;
     }
     if (current === 2) return true;
-    if (current === 3) return location.trim().length > 0;
+    if (current === 3) return pinLat != null && pinLng != null;
     return true;
   }
 
@@ -150,10 +169,13 @@ export function ReportLostPet() {
       showError("Please describe the type of pet");
       return;
     }
-    if (!location.trim()) {
-      showError("Please enter the last seen location");
+    if (pinLat == null || pinLng == null) {
+      showError("Please pick the last seen spot on the map");
       return;
     }
+
+    const areaLabel = location.trim() || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`;
+    const locationText = landmark.trim() ? `${landmark.trim()} · ${areaLabel}` : areaLabel;
 
     setSubmitting(true);
 
@@ -166,9 +188,15 @@ export function ReportLostPet() {
         gender,
         status: "LOST",
         type: petType,
+<<<<<<< HEAD
         location_text: location.trim(),
         lat: reportCoords?.lat ?? null,
         lng: reportCoords?.lng ?? null,
+=======
+        location_text: locationText,
+        lat: pinLat,
+        lng: pinLng,
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         image_url: null,
         description: traits.trim(),
       },
@@ -181,11 +209,28 @@ export function ReportLostPet() {
       showError(result.error);
     } else {
       showSuccess("Report submitted! Your pet appears on the community board.");
+      if (result.petId) {
+        const auth = useAuthStore.getState();
+        useStatusHistoryStore.getState().recordChange({
+          petId: result.petId,
+          from: null,
+          to: "LOST",
+          byUserId: auth.user?.id ?? DEMO_REPORTER_ID,
+          byUserName:
+            auth.profile?.display_name?.trim() || onboardingSnapshot?.name?.trim() || "Reporter",
+        });
+      }
       setStep(1);
       setName("");
+      setPinLat(null);
+      setPinLng(null);
       setLocation("");
+<<<<<<< HEAD
       setReportCoords(null);
       setGpsStatus("idle");
+=======
+      setLandmark("");
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
       setTraits("");
       setColor("");
       setGender("Unknown");
@@ -194,11 +239,6 @@ export function ReportLostPet() {
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
       selectedFile.current = null;
-      const o = getOnboardingProfile();
-      if (o) {
-        const combined = [o.barangay, o.city].filter(Boolean).join(", ");
-        setLocation(combined);
-      }
     }
   }
 
@@ -346,14 +386,57 @@ export function ReportLostPet() {
         {step === 3 && (
           <section className="flex flex-col gap-4 rounded-[1.75rem] border border-white/45 bg-white/40 p-5 backdrop-blur-xl">
             <div>
-              <label htmlFor="last-seen" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
-                Last seen location
+              <p className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">Last seen location</p>
+              <p className="mt-1.5 font-body text-xs leading-relaxed text-bud-text-muted">
+                Tap the map to drop a pin, then drag it to the exact spot—like choosing a pickup point in a ride app.
+              </p>
+              <div className="mt-3">
+                <LocationPickerMap
+                  pinLat={pinLat}
+                  pinLng={pinLng}
+                  onPick={(lat, lng) => {
+                    locationEditedByUser.current = false;
+                    setPinLat(lat);
+                    setPinLng(lng);
+                  }}
+                />
+              </div>
+              {pinLat != null && pinLng != null ? (
+                <p className="mt-2 font-body text-[11px] leading-snug text-bud-text-muted">
+                  <span className="font-semibold text-bud-text/80">Map pin:</span>{" "}
+                  {pinLat.toFixed(5)}, {pinLng.toFixed(5)}
+                  <span className="block pt-1">
+                    The area label below describes this pin. The map recenters on the pin when you move it.
+                  </span>
+                </p>
+              ) : null}
+            </div>
+
+            <div>
+              <label htmlFor="last-seen-area" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
+                Area label (for this pin)
               </label>
               <input
-                id="last-seen"
+                id="last-seen-area"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Street, landmark, or barangay"
+                onChange={(e) => {
+                  locationEditedByUser.current = true;
+                  setLocation(e.target.value);
+                }}
+                placeholder="Fills from the pin — edit anytime"
+                className={`${inputWell} mt-2`}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="landmark" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
+                Landmark (optional)
+              </label>
+              <input
+                id="landmark"
+                value={landmark}
+                onChange={(e) => setLandmark(e.target.value)}
+                placeholder="e.g. in front of 7-Eleven, near the park gate"
                 className={`${inputWell} mt-2`}
               />
               <p className="font-body mt-2 text-xs leading-relaxed text-bud-text-muted">
@@ -415,11 +498,18 @@ export function ReportLostPet() {
               <span className="text-bud-text-muted">Gender:</span> {gender}
             </p>
             <p>
+<<<<<<< HEAD
               <span className="text-bud-text-muted">Last seen (private notes):</span> {location || "—"}
             </p>
             <p>
               <span className="text-bud-text-muted">GPS for map:</span>{" "}
               {gpsStatus === "captured" ? "Captured (approximate on map)" : "Not set"}
+=======
+              <span className="text-bud-text-muted">Last seen:</span>{" "}
+              {pinLat != null && pinLng != null
+                ? `${landmark.trim() ? `${landmark.trim()} · ` : ""}${location.trim() || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`}`
+                : "—"}
+>>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
             </p>
             <p>
               <span className="text-bud-text-muted">Photo:</span> {preview ? "Attached" : "None"}

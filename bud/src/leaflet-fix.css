@@ -4,3 +4,8 @@
 .leaflet-default-icon-path {
   background-image: none;
 }
+
+/* Custom pins: reliable taps on the photo/info card; avoid browser waiting for double-tap zoom. */
+.bud-map-custom-pin {
+  touch-action: manipulation;
+}
