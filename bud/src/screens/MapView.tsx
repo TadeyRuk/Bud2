@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import L from "leaflet";
 import { divIcon } from "leaflet";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
+import "leaflet.markercluster";
+import { useUserLocation } from "../context/LocationContext";
+import type { GeoPosition, GeolocationStatus } from "../hooks/useGeolocation";
 import type { Pet as StorePet } from "../stores/petStore";
 import { usePetStore } from "../stores/petStore";
 
@@ -11,17 +15,20 @@ type MapViewProps = {
 
 const DEFAULT_CENTER: [number, number] = [12.8797, 121.774];
 const DEFAULT_ZOOM = 5;
-const FALLBACK_MARKER_CENTER: [number, number] = [14.5995, 120.9842];
-const FALLBACK_MARKER_SPACING = 0.006;
+const USER_ZOOM = 12;
+const CLUSTER_LOST_COLOR = "#8B3A15";
+const CLUSTER_FOUND_COLOR = "#005763";
+const PIN_ICON_WIDTH = 200;
+const PIN_ICON_HEIGHT = 120;
 
 function PinMarkerHtml({ pet }: { pet: StorePet }) {
-  const bubbleColor = pet.status === "LOST" ? "#8B3A15" : "#005763";
+  const bubbleColor = pet.status === "LOST" ? CLUSTER_LOST_COLOR : CLUSTER_FOUND_COLOR;
   const imageUrl =
     pet.image_url ||
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23e8e5dc'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "auto" }}>
       <div
         style={{
           background: bubbleColor,
@@ -118,60 +125,134 @@ function makePinIcon(pet: StorePet) {
   return divIcon({
     html,
     className: "",
-    iconAnchor: [22, 44],
-    popupAnchor: [0, -50],
+    iconSize: [PIN_ICON_WIDTH, PIN_ICON_HEIGHT],
+    iconAnchor: [PIN_ICON_WIDTH / 2, 44],
+    popupAnchor: [0, -44],
   });
 }
 
-function getMarkerPosition(pet: StorePet, index: number): [number, number] {
-  if (pet.lat != null && pet.lng != null) {
-    return [pet.lat, pet.lng];
-  }
-
-  const row = Math.floor(index / 3) - 1;
-  const col = (index % 3) - 1;
-  return [
-    FALLBACK_MARKER_CENTER[0] + row * FALLBACK_MARKER_SPACING,
-    FALLBACK_MARKER_CENTER[1] + col * FALLBACK_MARKER_SPACING,
-  ];
+function getPetFromMarker(marker: L.Marker): StorePet | undefined {
+  return (marker.options as L.MarkerOptions & { pet?: StorePet }).pet;
 }
 
-function PetMarkers({
+function hasMapCoordinates(pet: StorePet): pet is StorePet & { lat: number; lng: number } {
+  return pet.lat != null && pet.lng != null;
+}
+
+function createClusterIcon(cluster: L.MarkerCluster) {
+  const markers = cluster.getAllChildMarkers() as L.Marker[];
+  let lostCount = 0;
+  for (const marker of markers) {
+    const pet = (marker.options as L.MarkerOptions & { pet?: StorePet }).pet;
+    if (pet?.status === "LOST") lostCount += 1;
+  }
+  const foundCount = markers.length - lostCount;
+  const color = lostCount >= foundCount ? CLUSTER_LOST_COLOR : CLUSTER_FOUND_COLOR;
+  const count = cluster.getChildCount();
+
+  return L.divIcon({
+    html: `<div style="background:${color};color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Manrope,sans-serif;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.2);border:2px solid #fff">${count}</div>`,
+    className: "bud-cluster-icon",
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+  });
+}
+
+function MapLocationController({
+  target,
+  status,
+  fallbackCenter,
+  fallbackZoom,
+  userZoom,
+}: {
+  target: GeoPosition | null;
+  status: GeolocationStatus;
+  fallbackCenter: [number, number];
+  fallbackZoom: number;
+  userZoom: number;
+}) {
+  const map = useMap();
+  const didApply = useRef(false);
+
+  useEffect(() => {
+    if (didApply.current) return;
+
+    if (target) {
+      map.setView([target.lat, target.lng], userZoom, { animate: true });
+      didApply.current = true;
+    } else if (status === "error") {
+      map.setView(fallbackCenter, fallbackZoom, { animate: false });
+      didApply.current = true;
+    }
+  }, [map, target, status, fallbackCenter, fallbackZoom, userZoom]);
+
+  return null;
+}
+
+function ClusteredPetMarkers({
   pets,
   onSelectPet,
 }: {
   pets: StorePet[];
   onSelectPet: (pet: StorePet) => void;
 }) {
+  const map = useMap();
   const fetchPets = usePetStore((s) => s.fetchPets);
 
   useEffect(() => {
     fetchPets(true);
   }, [fetchPets]);
 
-  return (
-    <>
-      {pets.map((pet, index) => (
-        <Marker
-          key={pet.id}
-          position={getMarkerPosition(pet, index)}
-          icon={makePinIcon(pet)}
-          eventHandlers={{ click: () => onSelectPet(pet) }}
-          title={pet.name}
-        />
-      ))}
-    </>
-  );
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      maxClusterRadius: 65,
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 14,
+      iconCreateFunction: createClusterIcon,
+    });
+
+    group.on("clusterclick", (event) => {
+      const cluster = event.layer;
+      if (cluster.getChildCount() !== 1) return;
+      const [marker] = cluster.getAllChildMarkers();
+      const pet = marker ? getPetFromMarker(marker) : undefined;
+      if (pet) onSelectPet(pet);
+    });
+
+    for (const pet of pets) {
+      if (!hasMapCoordinates(pet)) continue;
+
+      const marker = L.marker([pet.lat, pet.lng], {
+        icon: makePinIcon(pet),
+        title: pet.name,
+      }) as L.Marker & { options: L.MarkerOptions & { pet: StorePet } };
+      marker.options.pet = pet;
+      marker.on("click", () => onSelectPet(pet));
+      group.addLayer(marker);
+    }
+
+    map.addLayer(group);
+
+    return () => {
+      map.removeLayer(group);
+      group.clearLayers();
+    };
+  }, [map, pets, onSelectPet]);
+
+  return null;
 }
 
 export function MapView({ onSelectPet }: MapViewProps) {
   const pets = usePetStore((s) => s.pets);
   const [mapSearch, setMapSearch] = useState("");
+  const { position, status } = useUserLocation();
 
   const filteredPets = useMemo(() => {
     const q = mapSearch.trim().toLowerCase();
-    if (!q) return pets;
-    return pets.filter((p) => {
+    const withCoords = pets.filter(hasMapCoordinates);
+    if (!q) return withCoords;
+    return withCoords.filter((p) => {
       const breed = (p.breed ?? "").toLowerCase();
       const desc = (p.description ?? "").toLowerCase();
       return (
@@ -211,7 +292,14 @@ export function MapView({ onSelectPet }: MapViewProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <PetMarkers pets={filteredPets} onSelectPet={onSelectPet} />
+        <MapLocationController
+          target={position}
+          status={status}
+          fallbackCenter={DEFAULT_CENTER}
+          fallbackZoom={DEFAULT_ZOOM}
+          userZoom={USER_ZOOM}
+        />
+        <ClusteredPetMarkers pets={filteredPets} onSelectPet={onSelectPet} />
       </MapContainer>
     </div>
   );

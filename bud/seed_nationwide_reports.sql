@@ -1,4 +1,4 @@
--- Seed 100 visible nationwide pet reports for the current Bud schema.
+-- Seed 400 visible nationwide pet reports for the current Bud schema.
 --
 -- Run this after supabase/migrations/001_initial_schema.sql.
 -- The app's Community Board reads from public.pets, so these rows are inserted
@@ -122,24 +122,76 @@ BEGIN
     (99, 'Mindanao', 'Polomolok, South Cotabato', 'Public market', 6.2217, 125.0639),
     (100, 'Mindanao', 'Alabel, Sarangani', 'Capitol complex', 6.1018, 125.2905)
   ),
+  ring0_slots AS (
+    SELECT gs AS slot_index, ((gs - 1) % 100) + 1 AS city_seq, 0 AS ring
+    FROM generate_series(1, 100) AS gs
+  ),
+  ring1_slots AS (
+    SELECT gs + 100 AS slot_index, ((gs - 1) % 100) + 1 AS city_seq, 1 AS ring
+    FROM generate_series(1, 100) AS gs
+  ),
+  ring2_slots AS (
+    SELECT gs + 200 AS slot_index, ((gs - 1) % 100) + 1 AS city_seq, 2 AS ring
+    FROM generate_series(1, 100) AS gs
+  ),
+  metro_slots AS (
+    SELECT
+      300 + ROW_NUMBER() OVER (ORDER BY city_reports.seq, bonus.ring) AS slot_index,
+      city_reports.seq AS city_seq,
+      bonus.ring
+    FROM city_reports
+    CROSS JOIN (VALUES (1), (2)) AS bonus(ring)
+    WHERE
+      city_reports.city LIKE '%Metro Manila%'
+      OR city_reports.city LIKE '%Cebu City, Cebu%'
+      OR city_reports.city LIKE '%Davao City, Davao%'
+      OR city_reports.city LIKE '%Iloilo City, Iloilo%'
+      OR city_reports.city LIKE '%Cagayan de Oro, Misamis Oriental%'
+      OR city_reports.city LIKE '%Zamboanga City, Zamboanga del Sur%'
+  ),
+  rural_slots AS (
+    SELECT
+      322 + gs AS slot_index,
+      ((gs - 1) % 100) + 1 AS city_seq,
+      3 AS ring
+    FROM generate_series(1, 78) AS gs
+  ),
+  all_slots AS (
+    SELECT * FROM ring0_slots
+    UNION ALL SELECT * FROM ring1_slots
+    UNION ALL SELECT * FROM ring2_slots
+    UNION ALL SELECT * FROM metro_slots
+    UNION ALL SELECT * FROM rural_slots
+  ),
   seed_rows AS (
     SELECT
+      all_slots.slot_index,
       city_reports.*,
+      all_slots.ring,
       (
-        substr(md5('bud-visible-report-' || city_reports.seq), 1, 8) || '-' ||
-        substr(md5('bud-visible-report-' || city_reports.seq), 9, 4) || '-' ||
-        substr(md5('bud-visible-report-' || city_reports.seq), 13, 4) || '-' ||
-        substr(md5('bud-visible-report-' || city_reports.seq), 17, 4) || '-' ||
-        substr(md5('bud-visible-report-' || city_reports.seq), 21, 12)
+        substr(md5('bud-visible-report-' || all_slots.slot_index), 1, 8) || '-' ||
+        substr(md5('bud-visible-report-' || all_slots.slot_index), 9, 4) || '-' ||
+        substr(md5('bud-visible-report-' || all_slots.slot_index), 13, 4) || '-' ||
+        substr(md5('bud-visible-report-' || all_slots.slot_index), 17, 4) || '-' ||
+        substr(md5('bud-visible-report-' || all_slots.slot_index), 21, 12)
       )::uuid AS report_id,
-      (ARRAY['Mochi','Kape','Tala','Puti','Bantay','Saging','Panda','Ming','Nori','Datu','Kiko','Bituin'])[((city_reports.seq - 1) % 12) + 1] AS pet_name,
-      (ARRAY['Shih Tzu','Aspin','Siamese mix','Puspin','Labrador mix','Domestic Shorthair','Corgi','Puspin','Persian','German Shepherd','Beagle','Domestic Longhair'])[((city_reports.seq - 1) % 12) + 1] AS breed,
-      (ARRAY['White and tan','Brown','Cream and gray','White','Black','Ginger','Black, white, and tan','Calico','Gray','Black and tan','Tri-color','Tortoiseshell'])[((city_reports.seq - 1) % 12) + 1] AS fur_color,
-      (ARRAY['Pink harness','Blue collar','Purple collar','No collar','Green collar','Yellow ribbon','Red bandana','No collar','Teal collar','Black collar','Orange leash','Bell collar'])[((city_reports.seq - 1) % 12) + 1] AS color,
-      (ARRAY['dog','dog','cat','cat','dog','cat','dog','cat','cat','dog','dog','cat'])[((city_reports.seq - 1) % 12) + 1] AS pet_type,
-      (ARRAY['Female','Male','Female','Male','Male','Male','Female','Female','Male','Male','Male','Female'])[((city_reports.seq - 1) % 12) + 1] AS gender,
-      CASE WHEN city_reports.seq % 3 = 0 THEN 'FOUND' ELSE 'LOST' END AS pet_status
-    FROM city_reports
+      (ARRAY['Mochi','Kape','Tala','Puti','Bantay','Saging','Panda','Ming','Nori','Datu','Kiko','Bituin'])[((all_slots.slot_index - 1) % 12) + 1] AS pet_name,
+      (ARRAY['Shih Tzu','Aspin','Siamese mix','Puspin','Labrador mix','Domestic Shorthair','Corgi','Puspin','Persian','German Shepherd','Beagle','Domestic Longhair'])[((all_slots.slot_index - 1) % 12) + 1] AS breed,
+      (ARRAY['White and tan','Brown','Cream and gray','White','Black','Ginger','Black, white, and tan','Calico','Gray','Black and tan','Tri-color','Tortoiseshell'])[((all_slots.slot_index - 1) % 12) + 1] AS fur_color,
+      (ARRAY['Pink harness','Blue collar','Purple collar','No collar','Green collar','Yellow ribbon','Red bandana','No collar','Teal collar','Black collar','Orange leash','Bell collar'])[((all_slots.slot_index - 1) % 12) + 1] AS color,
+      (ARRAY['dog','dog','cat','cat','dog','cat','dog','cat','cat','dog','dog','cat'])[((all_slots.slot_index - 1) % 12) + 1] AS pet_type,
+      (ARRAY['Female','Male','Female','Male','Male','Male','Female','Female','Male','Male','Male','Female'])[((all_slots.slot_index - 1) % 12) + 1] AS gender,
+      CASE WHEN all_slots.slot_index % 3 = 0 THEN 'FOUND' ELSE 'LOST' END AS pet_status,
+      (
+        sin(all_slots.slot_index * 127.1 + all_slots.slot_index * 311.7) * 43758.5453
+        - trunc(sin(all_slots.slot_index * 127.1 + all_slots.slot_index * 311.7) * 43758.5453)
+      ) AS unit_a,
+      (
+        sin((all_slots.slot_index + 1) * 127.1 + (all_slots.slot_index + 1) * 311.7) * 43758.5453
+        - trunc(sin((all_slots.slot_index + 1) * 127.1 + (all_slots.slot_index + 1) * 311.7) * 43758.5453)
+      ) AS unit_b
+    FROM all_slots
+    JOIN city_reports ON city_reports.seq = all_slots.city_seq
   )
   INSERT INTO pets (
     id,
@@ -162,7 +214,7 @@ BEGIN
   SELECT
     report_id,
     seed_reporter_id,
-    pet_name || ' #' || lpad(seq::text, 3, '0'),
+    pet_name || ' #' || lpad(slot_index::text, 3, '0'),
     breed,
     color,
     fur_color,
@@ -170,8 +222,46 @@ BEGIN
     pet_status::pet_status,
     pet_type::pet_type,
     landmark || ', ' || city,
-    lat + (((seq % 7) - 3) * 0.0010),
-    lng + (((seq % 5) - 2) * 0.0010),
+  ROUND(
+    (
+      lat + (
+        (
+          CASE
+            WHEN ring = 0 THEN 0
+            WHEN ring = 3 THEN 0.15
+            ELSE 0.04
+          END
+        ) + (
+          CASE
+            WHEN ring = 0 THEN unit_b * 0.5 * 0.003
+            WHEN ring = 3 THEN unit_b * (0.35 - 0.15)
+            ELSE unit_b * (0.12 - 0.04)
+          END
+        )
+      ) * cos(unit_a * 2 * pi())
+    )::numeric,
+    6
+  ),
+  ROUND(
+    (
+      lng + (
+        (
+          CASE
+            WHEN ring = 0 THEN 0
+            WHEN ring = 3 THEN 0.15
+            ELSE 0.04
+          END
+        ) + (
+          CASE
+            WHEN ring = 0 THEN unit_b * 0.5 * 0.003
+            WHEN ring = 3 THEN unit_b * (0.35 - 0.15)
+            ELSE unit_b * (0.12 - 0.04)
+          END
+        )
+      ) * sin(unit_a * 2 * pi())
+    )::numeric,
+    6
+  ),
     CASE pet_type
       WHEN 'dog' THEN 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=80'
       ELSE 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=1200&q=80'
@@ -179,8 +269,8 @@ BEGIN
     'Nationwide seed report in ' || island_group || ': ' || pet_name || ' was ' ||
       CASE WHEN pet_status = 'FOUND' THEN 'found near ' ELSE 'last seen near ' END ||
       landmark || ', ' || city || '.',
-    now() - (seq || ' hours')::interval,
-    now() - (seq || ' hours')::interval
+    now() - (slot_index || ' hours')::interval,
+    now() - (slot_index || ' hours')::interval
   FROM seed_rows
   ON CONFLICT (id) DO UPDATE SET
     reporter_id = EXCLUDED.reporter_id,
@@ -210,5 +300,5 @@ WHERE id IN (
     substr(md5('bud-visible-report-' || seq), 17, 4) || '-' ||
     substr(md5('bud-visible-report-' || seq), 21, 12)
   )::uuid
-  FROM generate_series(1, 100) AS seq
+  FROM generate_series(1, 400) AS seq
 );

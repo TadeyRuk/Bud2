@@ -5,6 +5,8 @@ import { useAuthStore } from "../stores/authStore";
 import { showError, showSuccess } from "../lib/api";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
 import { DEMO_REPORTER_ID } from "../data/pets";
+import { useUserLocation } from "../context/LocationContext";
+import { formatDistanceKm, petDistanceKm, sortPetsByDistance } from "../lib/geo";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -25,6 +27,7 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
   const fetchPets = usePetStore((s) => s.fetchPets);
   const searchPets = usePetStore((s) => s.searchPets);
   const user = useAuthStore((s) => s.user);
+  const { position } = useUserLocation();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -107,15 +110,17 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
   }
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return pets;
     const q = query.trim().toLowerCase();
-    return pets.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.location_text.toLowerCase().includes(q) ||
-        (p.breed?.toLowerCase().includes(q) ?? false)
-    );
-  }, [pets, query]);
+    const matched = q
+      ? pets.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.location_text.toLowerCase().includes(q) ||
+            (p.breed?.toLowerCase().includes(q) ?? false)
+        )
+      : pets;
+    return sortPetsByDistance(matched, position);
+  }, [pets, query, position]);
 
   return (
     <div className="relative min-h-full">
@@ -183,9 +188,12 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
 
         <div className="space-y-6 pt-1">
           {filtered.map((pet) => {
+            const distanceKm = position ? petDistanceKm(pet, position) : null;
+            const distanceLabel =
+              distanceKm != null ? formatDistanceKm(distanceKm) : null;
             const metaLine = [
               [pet.breed, pet.color].filter(Boolean).join(" · ") || "Pet",
-              `#${pet.id.slice(0, 8)}`,
+              distanceLabel ?? `#${pet.id.slice(0, 8)}`,
             ].join(" · ");
 
             return (
@@ -273,6 +281,11 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
                           <p className="font-body text-sm font-semibold leading-snug text-[#1c1c19] line-clamp-2">
                             {pet.location_text || "Location shared"}
                           </p>
+                          {distanceLabel && (
+                            <p className="font-body mt-1 text-xs font-semibold text-bud-accent">
+                              {distanceLabel} away
+                            </p>
+                          )}
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="font-headline text-lg font-bold tabular-nums leading-none text-bud-primary">
