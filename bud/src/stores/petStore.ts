@@ -28,6 +28,8 @@ type PetState = {
 
 const PAGE_SIZE = 100;
 
+const DEMO_PET_IDS = new Set(DEMO_PETS.map((d) => d.id));
+
 function mapDemoPets(): Pet[] {
   return DEMO_PETS.map((d) => ({
     id: d.id,
@@ -48,6 +50,16 @@ function mapDemoPets(): Pet[] {
     updated_at: new Date().toISOString(),
     date: d.date,
   }));
+}
+
+function mergeDemoPets(fetched: Pet[]): Pet[] {
+  const demos = mapDemoPets();
+  const extras = fetched.filter((p) => !DEMO_PET_IDS.has(p.id));
+  return [...demos, ...extras];
+}
+
+function withoutDemoPets(pets: Pet[]): Pet[] {
+  return pets.filter((p) => !DEMO_PET_IDS.has(p.id));
 }
 
 export const usePetStore = create<PetState>()(
@@ -89,8 +101,9 @@ export const usePetStore = create<PetState>()(
         }
 
         const fetched = (data as DbPet[]).map((d) => ({ ...d } as Pet));
+        const supabasePets = reset ? fetched : [...withoutDemoPets(current), ...fetched];
         set({
-          pets: reset ? fetched : [...current, ...fetched],
+          pets: mergeDemoPets(supabasePets),
           loading: false,
           hasMore: fetched.length === PAGE_SIZE,
         });
@@ -140,7 +153,15 @@ export const usePetStore = create<PetState>()(
           return;
         }
 
-        set({ pets: (data as DbPet[]).map((d) => ({ ...d } as Pet)), loading: false, hasMore: false });
+        const fetched = (data as DbPet[]).map((d) => ({ ...d } as Pet));
+        const lq = q.toLowerCase();
+        const filtered = mergeDemoPets(fetched).filter(
+          (p) =>
+            p.name.toLowerCase().includes(lq) ||
+            p.location_text.toLowerCase().includes(lq) ||
+            (p.breed?.toLowerCase().includes(lq) ?? false)
+        );
+        set({ pets: filtered, loading: false, hasMore: false });
       },
 
       addPet: async (petData, photo) => {
