@@ -16,7 +16,7 @@ type UiState = {
   sightingSheetOriginRect: DOMRect | null;
   sightingSheetFocusEl: HTMLElement | null;
   sightingPulsePetId: string | null;
-  /** Sub-plan 03 — mock user position for Nearby mode */
+  /** Last known device location (fallback for filters when GPS unavailable); updated by `LocationProvider`. */
   userLatLng: [number, number];
   nearbyMode: boolean;
   nearbyFocusRadius: NearbyFocusRadius;

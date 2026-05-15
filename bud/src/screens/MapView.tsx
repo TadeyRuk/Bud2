@@ -1,18 +1,8 @@
-<<<<<<< HEAD
-import { useEffect, useMemo, useRef, useState } from "react";
-import L from "leaflet";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import "leaflet.markercluster";
-import { useUserLocation } from "../context/LocationContext";
-import type { GeoPosition, GeolocationStatus } from "../hooks/useGeolocation";
-import { FUZZ_RADIUS_M, getFuzzyMapCenter, hasPetCoordinates } from "../lib/locationPrivacy";
-=======
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { divIcon, point } from "leaflet";
 import type { LatLngTuple, Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 import type { Pet as StorePet } from "../stores/petStore";
 import { usePetStore } from "../stores/petStore";
 import { useUiStore } from "../stores/uiStore";
@@ -27,46 +17,9 @@ type MapViewProps = {
 
 const DEFAULT_CENTER: [number, number] = [12.8797, 121.774];
 const DEFAULT_ZOOM = 5;
-<<<<<<< HEAD
-const USER_ZOOM = 12;
-const CLUSTER_LOST_COLOR = "#8B3A15";
-const CLUSTER_FOUND_COLOR = "#005763";
-
-const HIT_ICON = L.divIcon({
-  html: "",
-  className: "bud-fuzz-hit",
-  iconSize: [1, 1],
-  iconAnchor: [0, 0],
-});
-
-function getPetFromMarker(marker: L.Marker): StorePet | undefined {
-  return (marker.options as L.MarkerOptions & { pet?: StorePet }).pet;
-}
-
-function createClusterIcon(cluster: L.MarkerCluster) {
-  const markers = cluster.getAllChildMarkers() as L.Marker[];
-  let lostCount = 0;
-  for (const marker of markers) {
-    const pet = (marker.options as L.MarkerOptions & { pet?: StorePet }).pet;
-    if (pet?.status === "LOST") lostCount += 1;
-  }
-  const foundCount = markers.length - lostCount;
-  const color = lostCount >= foundCount ? CLUSTER_LOST_COLOR : CLUSTER_FOUND_COLOR;
-  const count = cluster.getChildCount();
-
-  const box =
-    "<" +
-    "div" +
-    ` style="background:${color};color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Manrope,sans-serif;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.2);border:2px solid #fff">${count}</` +
-    "div>";
-  return L.divIcon({
-    html: box,
-    className: "bud-cluster-icon",
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
-=======
 const USER_LOC_ZOOM = 12;
+/** Zoom at or above this shows nearby-only markers (within focus radius); zoom out to see all reports. */
+const NEARBY_ZOOM_THRESHOLD = 12;
 const FALLBACK_MARKER_CENTER: [number, number] = [14.5995, 120.9842];
 const FALLBACK_MARKER_SPACING = 0.006;
 
@@ -254,20 +207,29 @@ function getMarkerPosition(pet: StorePet, index: number): [number, number] {
     FALLBACK_MARKER_CENTER[0] + row * FALLBACK_MARKER_SPACING,
     FALLBACK_MARKER_CENTER[1] + col * FALLBACK_MARKER_SPACING,
   ];
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 }
 
 function distanceRing(
   userLl: [number, number],
   petPos: [number, number],
-  nearby: boolean
+  nearby: boolean,
+  focusRadiusM: number
 ): "hot" | "mid" | "far" | "none" {
   if (!nearby) return "none";
   const d = distanceMeters(userLl, petPos);
-  if (d <= 500) return "hot";
-  if (d <= 1000) return "mid";
-  if (d <= 2000) return "far";
+  const r1 = focusRadiusM / 3;
+  const r2 = (2 * focusRadiusM) / 3;
+  if (d <= r1) return "hot";
+  if (d <= r2) return "mid";
+  if (d <= focusRadiusM) return "far";
   return "none";
+}
+
+function petsWithinMeters(pets: StorePet[], userLl: [number, number], maxM: number): StorePet[] {
+  return pets.filter((p) => {
+    if (p.lat == null || p.lng == null) return false;
+    return distanceMeters(userLl, [p.lat, p.lng]) <= maxM;
+  });
 }
 
 function PetMarkerInteractive({
@@ -336,19 +298,16 @@ function PetMarkers({
   pets,
   nearby,
   userLl,
+  focusRadiusM,
   onSelectPet,
 }: {
   pets: StorePet[];
   nearby: boolean;
   userLl: [number, number];
+  focusRadiusM: number;
   onSelectPet: (pet: StorePet) => void;
 }) {
   const map = useMap();
-  const fetchPets = usePetStore((s) => s.fetchPets);
-
-  useEffect(() => {
-    void fetchPets(true);
-  }, [fetchPets]);
 
   const handleOpen = useCallback(
     (pet: StorePet, position: [number, number]) => {
@@ -362,7 +321,7 @@ function PetMarkers({
     <>
       {pets.map((pet, index) => {
         const position = getMarkerPosition(pet, index);
-        const ring = distanceRing(userLl, position, nearby);
+        const ring = distanceRing(userLl, position, nearby, focusRadiusM);
         const dim = nearby && ring === "none" && pet.lat != null && pet.lng != null;
         return (
           <PetMarkerInteractive
@@ -382,65 +341,9 @@ function PetMarkers({
 function MapInstanceRef({ mapRef }: { mapRef: MutableRefObject<LeafletMap | null> }) {
   const map = useMap();
   useEffect(() => {
-<<<<<<< HEAD
-    const group = L.markerClusterGroup({
-      maxClusterRadius: 65,
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      disableClusteringAtZoom: 14,
-      iconCreateFunction: createClusterIcon,
-    });
-    const circlesLayer = L.layerGroup();
-
-    group.on("clusterclick", (event) => {
-      const cluster = event.layer;
-      if (cluster.getChildCount() !== 1) return;
-      const [marker] = cluster.getAllChildMarkers();
-      const pet = marker ? getPetFromMarker(marker) : undefined;
-      if (pet) {
-        onSelectPet(pet);
-      }
-    });
-
-    for (const pet of pets) {
-      if (!hasPetCoordinates(pet)) continue;
-
-      const center = getFuzzyMapCenter(pet);
-      const color = pet.status === "LOST" ? CLUSTER_LOST_COLOR : CLUSTER_FOUND_COLOR;
-
-      const circle = L.circle([center.lat, center.lng], {
-        radius: FUZZ_RADIUS_M,
-        color,
-        fillColor: color,
-        fillOpacity: 0.22,
-        weight: 2,
-      });
-      circle.on("click", () => onSelectPet(pet));
-      circlesLayer.addLayer(circle);
-
-      const marker = L.marker([center.lat, center.lng], {
-        icon: HIT_ICON,
-        opacity: 0,
-        interactive: false,
-        keyboard: false,
-      }) as L.Marker & { options: L.MarkerOptions & { pet: StorePet } };
-      marker.options.pet = pet;
-      group.addLayer(marker);
-    }
-
-    map.addLayer(circlesLayer);
-    map.addLayer(group);
-
-    return () => {
-      map.removeLayer(group);
-      map.removeLayer(circlesLayer);
-      group.clearLayers();
-      circlesLayer.clearLayers();
-=======
     mapRef.current = map;
     return () => {
       mapRef.current = null;
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
     };
   }, [map, mapRef]);
   return null;
@@ -459,13 +362,37 @@ function MapRecenter({ center, zoom }: { center: [number, number]; zoom: number 
   return null;
 }
 
-function NearbyOverlays({ userLl, show }: { userLl: [number, number]; show: boolean }) {
+function MapZoomSync({ onZoom }: { onZoom: (z: number) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    const report = () => onZoom(map.getZoom());
+    map.on("zoomend", report);
+    report();
+    return () => {
+      map.off("zoomend", report);
+    };
+  }, [map, onZoom]);
+  return null;
+}
+
+function NearbyOverlays({
+  userLl,
+  show,
+  focusRadiusM,
+}: {
+  userLl: [number, number];
+  show: boolean;
+  focusRadiusM: number;
+}) {
   if (!show) return null;
+  const r1 = Math.max(30, Math.round(focusRadiusM / 3));
+  const r2 = Math.max(r1 + 1, Math.round((2 * focusRadiusM) / 3));
+  const r3 = focusRadiusM;
   return (
     <>
       <Circle
         center={userLl}
-        radius={500}
+        radius={r1}
         pathOptions={{
           color: "#8B3A15",
           weight: 2,
@@ -475,7 +402,7 @@ function NearbyOverlays({ userLl, show }: { userLl: [number, number]; show: bool
       />
       <Circle
         center={userLl}
-        radius={1000}
+        radius={r2}
         pathOptions={{
           color: "#005763",
           weight: 2,
@@ -485,7 +412,7 @@ function NearbyOverlays({ userLl, show }: { userLl: [number, number]; show: bool
       />
       <Circle
         center={userLl}
-        radius={2000}
+        radius={r3}
         pathOptions={{
           color: "#56423c",
           weight: 2,
@@ -644,9 +571,7 @@ export function MapView({ onSelectPet }: MapViewProps) {
   const mapRef = useRef<LeafletMap | null>(null);
   const pets = usePetStore((s) => s.pets);
   const [mapSearch, setMapSearch] = useState("");
-  const nearbyMode = useUiStore((s) => s.nearbyMode);
-  const setNearbyMode = useUiStore((s) => s.setNearbyMode);
-  const userLatLng = useUiStore((s) => s.userLatLng);
+  const fallbackLatLng = useUiStore((s) => s.userLatLng);
   const nearbyFocusRadius = useUiStore((s) => s.nearbyFocusRadius);
   const setNearbyFocusRadius = useUiStore((s) => s.setNearbyFocusRadius);
   const setFilterDrawerOpen = useUiStore((s) => s.setFilterDrawerOpen);
@@ -655,32 +580,13 @@ export function MapView({ onSelectPet }: MapViewProps) {
   const filterCount = useFilterStore((s) => s.activeCount());
   const { position } = useUserLocation();
 
+  const effectiveUserLl = useMemo<[number, number]>(
+    () => (position ? [position.lat, position.lng] : fallbackLatLng),
+    [position, fallbackLatLng]
+  );
+
   const filteredPets = useMemo(() => {
     const q = mapSearch.trim().toLowerCase();
-<<<<<<< HEAD
-    const withCoords = pets.filter(hasPetCoordinates);
-    if (!q) return withCoords;
-    return withCoords.filter((p) => {
-      const breed = (p.breed ?? "").toLowerCase();
-      const desc = (p.description ?? "").toLowerCase();
-      return (
-        p.name.toLowerCase().includes(q) ||
-        breed.includes(q) ||
-        desc.includes(q)
-      );
-    });
-  }, [pets, mapSearch]);
-
-  return (
-    <div className="relative flex-1 min-h-0 w-full">
-      <header className="pointer-events-none absolute top-4 left-3 right-3 z-[1000] flex flex-col items-center gap-2">
-        <p className="pointer-events-auto text-center font-headline text-sm font-bold text-bud-text drop-shadow-sm bg-bud-card/90 rounded-full py-1.5 px-4 shadow-ambient">
-          Search Area Map
-        </p>
-        <p className="pointer-events-auto text-center font-body text-[11px] text-bud-text-muted bg-bud-card/85 rounded-full py-1 px-3">
-          Areas are approximate for privacy
-        </p>
-=======
     const base =
       !q || !q.length
         ? pets
@@ -702,24 +608,36 @@ export function MapView({ onSelectPet }: MapViewProps) {
       hasPhoto: filterSnapshot.hasPhoto,
       verifiedOnly: filterSnapshot.verifiedOnly,
     };
-    return applyFilters(base, f, { userLatLng });
-  }, [pets, mapSearch, filterSnapshot, userLatLng]);
+    return applyFilters(base, f, { userLatLng: effectiveUserLl });
+  }, [pets, mapSearch, filterSnapshot, effectiveUserLl]);
 
   const mapCenter: [number, number] = useMemo(() => {
-    if (nearbyMode) return userLatLng;
     if (position) return [position.lat, position.lng];
     return DEFAULT_CENTER;
-  }, [nearbyMode, userLatLng, position]);
+  }, [position]);
 
   const mapZoom = useMemo(() => {
-    if (nearbyMode) return 14;
     if (position) return USER_LOC_ZOOM;
     return DEFAULT_ZOOM;
-  }, [nearbyMode, position]);
+  }, [position]);
+
+  const [liveZoom, setLiveZoom] = useState<number | null>(null);
+  useEffect(() => {
+    setLiveZoom(null);
+  }, [mapZoom]);
+  const effectiveLiveZoom = liveZoom ?? mapZoom;
+  const showNearbyView = Boolean(position) && effectiveLiveZoom >= NEARBY_ZOOM_THRESHOLD;
+
+  const mapPets = useMemo(() => {
+    if (!showNearbyView || !position) return filteredPets;
+    return petsWithinMeters(filteredPets, effectiveUserLl, nearbyFocusRadius);
+  }, [showNearbyView, position, filteredPets, effectiveUserLl, nearbyFocusRadius]);
+
+  const onMapZoom = useCallback((z: number) => setLiveZoom(z), []);
 
   return (
     <div className="relative min-h-0 w-full flex-1">
-      {nearbyMode ? (
+      {showNearbyView ? (
         <div className="pointer-events-none absolute inset-0 z-[900] bg-black/[0.12] motion-reduce:bg-black/10" aria-hidden />
       ) : null}
 
@@ -750,7 +668,11 @@ export function MapView({ onSelectPet }: MapViewProps) {
             ) : null}
           </button>
         </div>
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+        <p className="pointer-events-auto text-center font-body text-[11px] text-bud-text-muted bg-bud-card/85 rounded-full py-1 px-3">
+          {showNearbyView
+            ? "Nearby reports — zoom out to see all"
+            : "Areas are approximate for privacy"}
+        </p>
         <div className="pointer-events-auto w-full max-w-sm px-1">
           <input
             type="search"
@@ -761,30 +683,8 @@ export function MapView({ onSelectPet }: MapViewProps) {
             className="w-full rounded-full border border-bud-text-muted/10 bg-bud-card/95 px-4 py-2.5 font-body text-sm text-bud-text shadow-ambient outline-none backdrop-blur-sm placeholder:text-bud-text-muted/65 focus:ring-2 focus:ring-bud-primary/35"
           />
         </div>
-<<<<<<< HEAD
-      </header>
-      <MapContainer
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
-        style={{ width: "100%", height: "100%" }}
-        zoomControl={false}
-=======
-        {nearbyMode ? <RingChipRow value={nearbyFocusRadius} onChange={setNearbyFocusRadius} /> : null}
+        {showNearbyView ? <RingChipRow value={nearbyFocusRadius} onChange={setNearbyFocusRadius} /> : null}
       </div>
-
-      <button
-        type="button"
-        onClick={() => setNearbyMode(!nearbyMode)}
-        className={`pointer-events-auto absolute right-3 top-[7.5rem] z-[1000] rounded-full border border-black/10 px-3 py-1.5 font-body text-xs font-bold shadow-md backdrop-blur-md motion-safe:transition-colors ${
-          nearbyMode ? "bg-bud-primary/12 text-bud-primary" : "bg-white/85 text-bud-text-muted"
-        }`}
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-      >
-        <span className={nearbyMode ? "motion-safe:inline-block motion-safe:bud-sighting-radar motion-reduce:animate-none" : ""}>
-          📡
-        </span>{" "}
-        {nearbyMode ? "Nearby · ON" : "Nearby"}
-      </button>
 
       <MapContainer center={mapCenter} zoom={mapZoom} style={{ width: "100%", height: "100%" }} zoomControl={false}>
         <MapInstanceRef mapRef={mapRef} />
@@ -792,16 +692,23 @@ export function MapView({ onSelectPet }: MapViewProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+        <MapZoomSync onZoom={onMapZoom} />
         <MapRecenter center={mapCenter} zoom={mapZoom} />
-        <NearbyOverlays userLl={userLatLng} show={nearbyMode} />
-        <PetMarkers pets={filteredPets} nearby={nearbyMode} userLl={userLatLng} onSelectPet={onSelectPet} />
+        <NearbyOverlays userLl={effectiveUserLl} show={showNearbyView} focusRadiusM={nearbyFocusRadius} />
+        <PetMarkers
+          pets={mapPets}
+          nearby={showNearbyView}
+          userLl={effectiveUserLl}
+          focusRadiusM={nearbyFocusRadius}
+          onSelectPet={onSelectPet}
+        />
       </MapContainer>
 
       <NearestPetBar
-        pets={filteredPets}
-        userLl={userLatLng}
-        show={nearbyMode}
-        nearbyMode={nearbyMode}
+        pets={mapPets}
+        userLl={effectiveUserLl}
+        show={showNearbyView}
+        nearbyMode={showNearbyView}
         mapRef={mapRef}
         onOpen={onSelectPet}
       />

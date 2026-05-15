@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GEOLOCATION_OPTIONS, isGeolocationSupported } from "../hooks/useGeolocation";
-import type { GeoPosition } from "../hooks/useGeolocation";
 import { usePetStore } from "../stores/petStore";
 import { showError, showSuccess } from "../lib/api";
 import { getOnboardingProfile } from "../lib/onboardingProfile";
@@ -86,7 +85,6 @@ export function ReportLostPet() {
   const [gender, setGender] = useState("Unknown");
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [reportCoords, setReportCoords] = useState<GeoPosition | null>(null);
   const [gpsStatus, setGpsStatus] = useState<GpsCaptureStatus>("idle");
   const fileRef = useRef<HTMLInputElement>(null);
   const selectedFile = useRef<File | null>(null);
@@ -99,7 +97,6 @@ export function ReportLostPet() {
     if (petType !== "other") setOtherSpecies("");
   }, [petType]);
 
-<<<<<<< HEAD
   function captureGps() {
     if (!isGeolocationSupported()) {
       setGpsStatus("denied");
@@ -108,19 +105,22 @@ export function ReportLostPet() {
     }
     setGpsStatus("loading");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setReportCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      (coord) => {
+        const lat = coord.coords.latitude;
+        const lng = coord.coords.longitude;
+        locationEditedByUser.current = false;
+        setPinLat(lat);
+        setPinLng(lng);
         setGpsStatus("captured");
       },
       () => {
-        setReportCoords(null);
         setGpsStatus("denied");
         showError("Could not access your location. You can still submit with text only.");
       },
       GEOLOCATION_OPTIONS
     );
   }
-=======
+
   useEffect(() => {
     if (pinLat == null || pinLng == null) return;
     locationEditedByUser.current = false;
@@ -135,7 +135,6 @@ export function ReportLostPet() {
       window.clearTimeout(timer);
     };
   }, [pinLat, pinLng]);
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -188,15 +187,9 @@ export function ReportLostPet() {
         gender,
         status: "LOST",
         type: petType,
-<<<<<<< HEAD
-        location_text: location.trim(),
-        lat: reportCoords?.lat ?? null,
-        lng: reportCoords?.lng ?? null,
-=======
         location_text: locationText,
         lat: pinLat,
         lng: pinLng,
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         image_url: null,
         description: traits.trim(),
       },
@@ -225,12 +218,7 @@ export function ReportLostPet() {
       setPinLat(null);
       setPinLng(null);
       setLocation("");
-<<<<<<< HEAD
-      setReportCoords(null);
-      setGpsStatus("idle");
-=======
       setLandmark("");
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
       setTraits("");
       setColor("");
       setGender("Unknown");
@@ -451,12 +439,12 @@ export function ReportLostPet() {
                 {gpsStatus === "loading"
                   ? "Getting location…"
                   : gpsStatus === "captured"
-                    ? "Location captured — tap to refresh"
+                    ? "Update to current location"
                     : "Use my location (optional)"}
               </button>
               {gpsStatus === "captured" && (
                 <p className="font-body mt-2 text-xs font-semibold text-bud-accent">
-                  GPS saved for approximate map placement.
+                  Map pin set to your current location. Tap again after you move.
                 </p>
               )}
               {gpsStatus === "denied" && (
@@ -498,18 +486,14 @@ export function ReportLostPet() {
               <span className="text-bud-text-muted">Gender:</span> {gender}
             </p>
             <p>
-<<<<<<< HEAD
-              <span className="text-bud-text-muted">Last seen (private notes):</span> {location || "—"}
-            </p>
-            <p>
-              <span className="text-bud-text-muted">GPS for map:</span>{" "}
-              {gpsStatus === "captured" ? "Captured (approximate on map)" : "Not set"}
-=======
               <span className="text-bud-text-muted">Last seen:</span>{" "}
               {pinLat != null && pinLng != null
                 ? `${landmark.trim() ? `${landmark.trim()} · ` : ""}${location.trim() || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`}`
                 : "—"}
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+            </p>
+            <p>
+              <span className="text-bud-text-muted">GPS assist (optional):</span>{" "}
+              {gpsStatus === "captured" ? "Captured" : gpsStatus === "denied" ? "Not set" : "Not used"}
             </p>
             <p>
               <span className="text-bud-text-muted">Photo:</span> {preview ? "Attached" : "None"}

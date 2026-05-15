@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePetStore, type Pet } from "../stores/petStore";
-import { PetLocationLabel } from "../components/PetLocationLabel";
+import { useAuthStore } from "../stores/authStore";
 import { StatusBadge } from "../components/StatusBadge";
 import { getOnboardingProfile, roleLabel } from "../lib/onboardingProfile";
 import { getActorReporterIdForUi, migrateLegacyGuestReporterIds } from "../lib/petOwnership";
@@ -56,24 +56,9 @@ function initialsFromName(name: string): string {
 export function Profile({ onSelectPet, onEditSetup }: ProfileProps) {
   const onboardingLocal = getOnboardingProfile();
   const pets = usePetStore((s) => s.pets);
+  const user = useAuthStore((s) => s.user);
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-
-<<<<<<< HEAD
-  const myPets = useMemo(() => pets.filter((p) => p.reporter_id === ""), [pets]);
-=======
-  useEffect(() => {
-    if (user) fetchProfile();
-  }, [user, fetchProfile]);
-
-  useEffect(() => {
-    if (profile) {
-      setEditName(profile.display_name);
-      setEditBio(profile.bio);
-      setEditPhone(profile.phone ?? "");
-      setEditBarangay(profile.barangay ?? "");
-    }
-  }, [profile]);
 
   const myPets = useMemo(() => {
     const list = migrateLegacyGuestReporterIds(pets);
@@ -81,38 +66,6 @@ export function Profile({ onSelectPet, onEditSetup }: ProfileProps) {
     if (!actor) return [];
     return list.filter((p) => p.reporter_id === actor);
   }, [pets, user]);
-
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    try {
-      const resized = await resizeImage(file);
-      const url = await uploadAvatar(resized, user.id);
-      if (url) {
-        await updateProfile({ avatar_url: url });
-        showSuccess("Avatar updated!");
-      }
-    } catch {
-      showError("Failed to upload avatar. Please try again.");
-    }
-  }
-
-  async function handleSaveProfile() {
-    const result = await updateProfile({
-      display_name: editName.trim(),
-      bio: editBio.trim(),
-      phone: editPhone.trim(),
-      barangay: editBarangay.trim(),
-    });
-    if (result.error) {
-      showError(result.error);
-    } else {
-      showSuccess("Profile updated!");
-      setEditing(false);
-    }
-  }
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 
   const guestDisplayName = onboardingLocal?.name?.trim() || "Neighbor";
   const guestArea = [onboardingLocal?.barangay, onboardingLocal?.city].filter(Boolean).join(", ");
@@ -124,7 +77,6 @@ export function Profile({ onSelectPet, onEditSetup }: ProfileProps) {
           {initialsFromName(guestDisplayName)}
         </div>
 
-<<<<<<< HEAD
         <h1 className="font-headline mt-5 text-2xl font-bold text-bud-text">{guestDisplayName}</h1>
         {guestArea ? (
           <p className="font-body mx-auto mt-2 max-w-sm text-sm text-bud-text-muted">{guestArea}</p>
@@ -132,17 +84,6 @@ export function Profile({ onSelectPet, onEditSetup }: ProfileProps) {
           <p className="font-body mx-auto mt-2 max-w-sm text-sm text-bud-text-muted">
             Add where you&apos;re based so matches stay local.
           </p>
-=======
-        {myPets.length > 0 && (
-          <section className="w-full">
-            <h2 className="font-headline mb-3 px-1 text-center text-lg font-bold text-bud-text">My reports</h2>
-            <div className="space-y-2.5">
-              {myPets.map((pet) => (
-                <MyReportRow key={pet.id} petId={pet.id} onOpen={onSelectPet} />
-              ))}
-            </div>
-          </section>
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         )}
 
         {onboardingLocal ? (
@@ -165,39 +106,16 @@ export function Profile({ onSelectPet, onEditSetup }: ProfileProps) {
         </button>
       </div>
 
-      {myPets.length > 0 && (
+      {myPets.length > 0 ? (
         <section className="w-full">
           <h2 className="font-headline mb-3 px-1 text-center text-lg font-bold text-bud-text">My reports</h2>
           <div className="space-y-2.5">
             {myPets.map((pet) => (
-<<<<<<< HEAD
-              <button
-                key={pet.id}
-                type="button"
-                onClick={() => onSelectPet(pet)}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left ${glassRow}`}
-              >
-                <img
-                  src={pet.image_url || ""}
-                  alt=""
-                  className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/50"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-headline truncate text-sm font-bold text-bud-text">{pet.name}</p>
-                  <PetLocationLabel pet={pet} />
-                </div>
-                <StatusBadge status={pet.status === "REUNITED" ? "FOUND" : pet.status} />
-              </button>
-=======
               <MyReportRow key={pet.id} petId={pet.id} onOpen={onSelectPet} />
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       <div className="w-full space-y-2.5">
         <button

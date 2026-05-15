@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { usePetStore, type Pet } from "../stores/petStore";
-<<<<<<< HEAD
-import { showSuccess } from "../lib/api";
-import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
-import { PetLocationLabel } from "../components/PetLocationLabel";
-=======
 import { useAuthStore } from "../stores/authStore";
 import { useUiStore } from "../stores/uiStore";
 import { useSightingStore } from "../stores/sightingStore";
@@ -12,10 +7,11 @@ import { useFilterStore } from "../stores/filterStore";
 import { applyFilters } from "../lib/applyFilters";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
 import { BreakingStrip } from "../components/BreakingStrip";
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+import { PetLocationLabel } from "../components/PetLocationLabel";
 import { useUserLocation } from "../context/LocationContext";
 import { sortPetsByDistance } from "../lib/geo";
 import { getPublicLocationLabel } from "../lib/locationPrivacy";
+import { distanceMeters } from "../lib/distance";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -27,13 +23,11 @@ type CommunityBoardProps = {
   /** The community feed scroller (`overflow-y-auto` in MainShell) — required so tap-to-focus uses real scrollTop, not broken `scrollIntoView` in nested layouts. */
   listScrollRef: RefObject<HTMLElement | null>;
   onSelectPet: (pet: Pet) => void;
+  onRequestAuth: () => void;
 };
 
-<<<<<<< HEAD
-const COMMUNITY_NEARBY_RADIUS_KM = 120;
+const COMMUNITY_NEARBY_RADIUS_KM = 2;
 
-export function CommunityBoard({ onSelectPet }: CommunityBoardProps) {
-=======
 /** Scroll the feed so `card` sits just under the top padding of the scroll parent (mirrors “scroll this card into view”). */
 function scrollFeedCardIntoView(scrollParent: HTMLElement, card: HTMLElement) {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -50,7 +44,6 @@ function scrollFeedCardIntoView(scrollParent: HTMLElement, card: HTMLElement) {
 }
 
 export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: CommunityBoardProps) {
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
   const [query, setQuery] = useState("");
   const pets = usePetStore((s) => s.pets);
   const nearbyPets = usePetStore((s) => s.nearbyPets);
@@ -58,14 +51,10 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
   const loading = usePetStore((s) => s.loading);
   const hasMore = usePetStore((s) => s.hasMore);
   const fetchPets = usePetStore((s) => s.fetchPets);
-<<<<<<< HEAD
   const fetchNearbyPets = usePetStore((s) => s.fetchNearbyPets);
   const clearNearbyPets = usePetStore((s) => s.clearNearbyPets);
-  const { position, status } = useUserLocation();
-=======
-  const searchPets = usePetStore((s) => s.searchPets);
   const user = useAuthStore((s) => s.user);
-  const { position } = useUserLocation();
+  const { position, status } = useUserLocation();
   const openSightingSheet = useUiStore((s) => s.openSightingSheet);
   const setFilterDrawerOpen = useUiStore((s) => s.setFilterDrawerOpen);
   const userLatLng = useUiStore((s) => s.userLatLng);
@@ -80,12 +69,6 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
   const verifiedOnly = useFilterStore((s) => s.verifiedOnly);
   const filterActiveFn = useFilterStore((s) => s.isActive);
   const filterCountFn = useFilterStore((s) => s.activeCount);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-
-  useEffect(() => {
-    fetchPets(true);
-  }, [fetchPets]);
 
   useEffect(() => {
     if (status === "ready" && position) {
@@ -122,13 +105,6 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
     return () => observer.disconnect();
   }, [loadMore]);
 
-<<<<<<< HEAD
-  async function handleHaveInfo(pet: Pet) {
-    const message = window.prompt(`Share info about ${pet.name}:`);
-    if (!message) return;
-
-    showSuccess(`Thanks — your info about ${pet.name} was shared with the community.`);
-=======
   function handleHaveInfo(pet: Pet, e: React.MouseEvent<HTMLButtonElement>) {
     if (!user) {
       onRequestAuth();
@@ -136,7 +112,6 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
     }
 
     openSightingSheet(pet.id, e.currentTarget.getBoundingClientRect(), e.currentTarget);
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
   }
 
   const filterShape = useMemo(
@@ -144,35 +119,27 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
     [species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly]
   );
 
+  const filterRefLatLng = useMemo<[number, number]>(
+    () => (position ? [position.lat, position.lng] : userLatLng),
+    [position, userLatLng]
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-<<<<<<< HEAD
     const matched = q
       ? basePets.filter((p) => {
           const desc = (p.description ?? "").toLowerCase();
           return (
             p.name.toLowerCase().includes(q) ||
             (p.breed?.toLowerCase().includes(q) ?? false) ||
-            desc.includes(q)
+            desc.includes(q) ||
+            p.location_text.toLowerCase().includes(q)
           );
         })
       : basePets;
-    return sortPetsByDistance(matched, position);
-  }, [basePets, query, position]);
-=======
-    const base =
-      !q || !q.length
-        ? pets
-        : pets.filter(
-            (p) =>
-              p.name.toLowerCase().includes(q) ||
-              p.location_text.toLowerCase().includes(q) ||
-              (p.breed?.toLowerCase().includes(q) ?? false)
-          );
-    const afterFilters = applyFilters(base, filterShape, { userLatLng });
+    const afterFilters = applyFilters(matched, filterShape, { userLatLng: filterRefLatLng });
     return sortPetsByDistance(afterFilters, position);
-  }, [pets, query, filterShape, userLatLng, position]);
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+  }, [basePets, query, filterShape, filterRefLatLng, position]);
 
   return (
     <div className="relative min-h-full bg-black/[0.03]">
@@ -289,6 +256,14 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
               areaLabel,
             ].join(" · ");
             const sightingCount = countForPet(pet.id);
+            const distanceLabel =
+              position && pet.lat != null && pet.lng != null
+                ? (() => {
+                    const m = distanceMeters([position.lat, position.lng], [pet.lat, pet.lng]);
+                    if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
+                    return `${Math.round(m)} m`;
+                  })()
+                : null;
 
             return (
               <article
@@ -391,18 +366,12 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
                           <p className="font-body text-[10px] font-bold uppercase tracking-[0.16em] text-bud-text-muted">
                             Last seen
                           </p>
-<<<<<<< HEAD
                           <PetLocationLabel pet={pet} variant="lastSeen" className="text-[#1c1c19]" />
-=======
-                          <p className="font-body text-xs font-medium leading-snug text-bud-text-muted line-clamp-2">
-                            {pet.location_text || "Location shared"}
-                          </p>
-                          {distanceLabel && (
+                          {distanceLabel ? (
                             <p className="font-body mt-1 text-xs font-semibold text-bud-accent">
                               {distanceLabel} away
                             </p>
-                          )}
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+                          ) : null}
                         </div>
                         <div className="shrink-0 text-right text-xs text-bud-text-muted">
                           <p className="font-headline text-xs font-semibold tabular-nums leading-none text-bud-text-muted">

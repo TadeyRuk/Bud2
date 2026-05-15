@@ -36,10 +36,10 @@ export function useGeolocation(): GeolocationState {
 
     setState((prev) => ({ ...prev, status: "loading" }));
 
-    navigator.geolocation.getCurrentPosition(
-      (coords) => {
+    const watchId = navigator.geolocation.watchPosition(
+      (coord) => {
         setState({
-          position: { lat: coords.coords.latitude, lng: coords.coords.longitude },
+          position: { lat: coord.coords.latitude, lng: coord.coords.longitude },
           status: "ready",
           error: null,
         });
@@ -49,6 +49,10 @@ export function useGeolocation(): GeolocationState {
       },
       GEOLOCATION_OPTIONS
     );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   return state;

@@ -1,25 +1,19 @@
 import { useEffect, useRef } from "react";
-<<<<<<< HEAD
-=======
 import { useAuthStore } from "../stores/authStore";
 import { useUiStore } from "../stores/uiStore";
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 import { usePetStore, type Pet } from "../stores/petStore";
 import { showError, showSuccess } from "../lib/api";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
-<<<<<<< HEAD
 import { PetLocationLabel } from "../components/PetLocationLabel";
 import { useUserLocation } from "../context/LocationContext";
 import { getPublicLocationLabel } from "../lib/locationPrivacy";
-import { useUiStore } from "../stores/uiStore";
-=======
 import { DEMO_REPORTER_ID } from "../data/pets";
 import { isPetOwnerInUi } from "../lib/petOwnership";
 import { OwnerPetActions } from "../components/OwnerPetActions";
 import { useContactTimelineStore } from "../stores/contactTimelineStore";
 import { useStatusHistoryStore } from "../stores/statusHistoryStore";
 import { PetActivityTimeline } from "../components/PetActivityTimeline/PetActivityTimeline";
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+import { supabase, supabaseConfigured } from "../lib/supabase";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -30,6 +24,7 @@ const PET_IMAGE_PLACEHOLDER =
 type PetDetailProps = {
   pet: Pet;
   onBack: () => void;
+  onRequestAuth: () => void;
 };
 
 async function sharePet(pet: Pet) {
@@ -56,22 +51,9 @@ async function sharePet(pet: Pet) {
   }
 }
 
-<<<<<<< HEAD
-export function PetDetail({ pet, onBack }: PetDetailProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const { position } = useUserLocation();
-  const updatePetStatus = usePetStore((s) => s.updatePetStatus);
-  const isOwner = pet.reporter_id === "";
-
-  const metaLine = [
-    [pet.breed, pet.color].filter(Boolean).join(" · ") || "Pet",
-    getPublicLocationLabel(pet, position, { suffix: false }),
-  ].join(" · ");
-
-  async function handleContact(type: "owner" | "barangay") {
-=======
 export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const { position } = useUserLocation();
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const openSightingSheet = useUiStore((s) => s.openSightingSheet);
@@ -90,7 +72,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
 
   const metaLine = [
     [petLatest.breed, petLatest.color].filter(Boolean).join(" · ") || "Pet",
-    `#${petLatest.id.slice(0, 8)}`,
+    getPublicLocationLabel(petLatest, position, { suffix: false }),
   ].join(" · ");
 
   async function handleContact(type: "owner" | "barangay") {
@@ -128,7 +110,6 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
       }
     }
 
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
     if (type === "barangay") {
       showSuccess("Connecting to barangay desk…");
     } else {
@@ -144,58 +125,6 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   }
 
   const glassFrame =
-<<<<<<< HEAD
-    "overflow-hidden rounded-[1.85rem] border border-white/50 bg-bud-card shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04]";
-
-  // #region agent log
-  useEffect(() => {
-    const el = overlayRef.current;
-    if (!el) return;
-    const box = el.getBoundingClientRect();
-    const x = Math.floor(box.left + box.width / 2);
-    const y = Math.floor(box.top + box.height * 0.38);
-    const hit = document.elementFromPoint(x, y);
-    const leafletCount = document.querySelectorAll(".leaflet-container").length;
-    const activeTab = useUiStore.getState().activeTab;
-    const portalHost = typeof document !== "undefined" ? document.getElementById("bud-shell-mount") : null;
-    const payload = {
-      activeTab,
-      leafletCount,
-      hitIsLeaflet: !!(hit && (hit as Element).closest?.(".leaflet-container")),
-      hitTag: hit?.nodeName ?? null,
-      petAnchoredUnderShellMount: !!(portalHost && el.parentElement?.id === "bud-shell-mount"),
-    };
-    try {
-      localStorage.setItem(
-        "debug-60513c",
-        JSON.stringify({ ...payload, ts: Date.now(), petIdPrefix: pet.id.slice(0, 8) })
-      );
-    } catch {
-      /* ignore quota */
-    }
-    fetch("http://127.0.0.1:7574/ingest/94092400-477a-4a06-a267-106d04813b25", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "60513c" },
-      body: JSON.stringify({
-        sessionId: "60513c",
-        runId: "portal-mount",
-        hypothesisId: "H13",
-        location: "PetDetail.tsx:probe",
-        message: "pet detail stack probe",
-        data: payload,
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }, [pet.id]);
-  // #endregion
-
-  return (
-    <div
-      ref={overlayRef}
-      className="absolute inset-0 z-[5000] isolate flex flex-col bg-bud-bg transition-opacity duration-200"
-    >
-      <header className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between p-3 pt-4">
-=======
     "overflow-hidden rounded-2xl border border-white/50 bg-white/[0.22] shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04] backdrop-blur-xl backdrop-saturate-150";
 
   return (
@@ -209,7 +138,6 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
       <header
         className={`absolute left-0 right-0 z-50 flex items-center justify-between p-3 pr-3 pt-4 ${petLatest.status === "REUNITED" && reuniteAt ? "top-7" : "top-0"}`}
       >
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         <button
           type="button"
           onClick={onBack}
@@ -232,14 +160,10 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
         </button>
       </header>
 
-<<<<<<< HEAD
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-bud-bg px-4 pb-8 pt-14">
-=======
       <div
         ref={bodyScrollRef}
         className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pb-[max(2rem,env(safe-area-inset-bottom,0px)+12px)] [-webkit-overflow-scrolling:touch] touch-pan-y ${petLatest.status === "REUNITED" && reuniteAt ? "pt-24" : "pt-14"}`}
       >
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         <article className={`mx-auto w-full max-w-lg ${glassFrame}`}>
           <div className="relative mx-auto aspect-[3/4] max-h-64 w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-bud-surface-well to-bud-surface-low">
             <img
@@ -273,13 +197,8 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                 <h1 className="font-headline flex-1 text-2xl font-bold leading-tight tracking-tight text-[#1c1c19]">
                   {petLatest.name}
                 </h1>
-<<<<<<< HEAD
-                {pet.status === "REUNITED" && (
-                  <span className="shrink-0 rounded-full bg-white/95 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-wide text-green-700 shadow-sm">
-=======
                 {petLatest.status === "REUNITED" && (
                   <span className="shrink-0 rounded-full bg-white/90 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-wide text-green-700 shadow-sm backdrop-blur-sm">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
                     Reunited
                   </span>
                 )}
@@ -341,13 +260,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                   <p className="font-body text-[10px] font-bold uppercase tracking-[0.16em] text-bud-text/75">
                     Last seen
                   </p>
-<<<<<<< HEAD
-                  <PetLocationLabel pet={pet} variant="lastSeen" showMapHint />
-=======
-                  <p className="font-body text-sm font-semibold leading-snug text-bud-text line-clamp-3">
-                    {petLatest.location_text || "Location shared"}
-                  </p>
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
+                  <PetLocationLabel pet={petLatest} variant="lastSeen" showMapHint />
                 </div>
               </div>
               <div className="shrink-0 pt-1 text-right">
@@ -366,92 +279,71 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
             </div>
 
             <div className="relative z-[1]">
-<<<<<<< HEAD
-            <dl className="mt-4 grid grid-cols-2 gap-2 font-body text-sm">
-              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
-=======
-            <dl className="mt-0 grid grid-cols-2 gap-0 font-body text-sm">
-              <div className="border-b border-black/5 p-3 backdrop-blur-md">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-                <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Breed</dt>
-                <dd className="mt-1 font-medium text-bud-text">{petLatest.breed ?? "—"}</dd>
-              </div>
-<<<<<<< HEAD
-              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
-=======
-              <div className="border-b border-black/5 p-3 backdrop-blur-md">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-                <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Color / collar</dt>
-                <dd className="mt-1 font-medium text-bud-text">{petLatest.color}</dd>
-              </div>
-<<<<<<< HEAD
-              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
-=======
-              <div className="border-b border-black/5 p-3 backdrop-blur-md">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-                <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Gender</dt>
-                <dd className="mt-1 font-medium text-bud-text">{petLatest.gender}</dd>
-              </div>
-<<<<<<< HEAD
-              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
-=======
-              <div className="border-b border-black/5 p-3 backdrop-blur-md">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-                <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Fur</dt>
-                <dd className="mt-1 font-medium text-bud-text">{petLatest.fur_color}</dd>
-              </div>
-            </dl>
+              <dl className="mt-0 grid grid-cols-2 gap-0 font-body text-sm">
+                <div className="border-b border-black/5 p-3 backdrop-blur-md">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Breed</dt>
+                  <dd className="mt-1 font-medium text-bud-text">{petLatest.breed ?? "—"}</dd>
+                </div>
+                <div className="border-b border-black/5 p-3 backdrop-blur-md">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Color / collar</dt>
+                  <dd className="mt-1 font-medium text-bud-text">{petLatest.color}</dd>
+                </div>
+                <div className="border-b border-black/5 p-3 backdrop-blur-md">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Gender</dt>
+                  <dd className="mt-1 font-medium text-bud-text">{petLatest.gender}</dd>
+                </div>
+                <div className="border-b border-black/5 p-3 backdrop-blur-md">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Fur</dt>
+                  <dd className="mt-1 font-medium text-bud-text">{petLatest.fur_color}</dd>
+                </div>
+              </dl>
 
-            <section className="mt-5 border-b border-black/5 pb-5">
-              <h2 className="font-headline text-lg font-bold text-bud-text">About {petLatest.name}</h2>
-              <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{petLatest.description}</p>
-            </section>
+              <section className="mt-5 border-b border-black/5 pb-5">
+                <h2 className="font-headline text-lg font-bold text-bud-text">About {petLatest.name}</h2>
+                <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{petLatest.description}</p>
+              </section>
 
-            <PetActivityTimeline petId={petLatest.id} petName={petLatest.name} />
+              <PetActivityTimeline petId={petLatest.id} petName={petLatest.name} />
 
-            <div className="mt-6 space-y-3">
-              {petLatest.status !== "REUNITED" && !isOwner && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleContact("owner")}
-                    className="h-14 w-full rounded-full bg-bud-primary font-body text-base font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
-                  >
-                    Contact Owner
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleContact("barangay")}
-<<<<<<< HEAD
-                    className="w-full rounded-[1.12rem] border-2 border-bud-accent bg-white py-3.5 font-body text-sm font-bold uppercase tracking-widest text-bud-accent transition-transform active:scale-[0.98]"
-=======
-                    className="h-12 w-full rounded-full border-2 border-bud-accent bg-transparent font-body text-sm font-semibold text-bud-accent shadow-sm transition-transform active:scale-[0.98]"
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
-                  >
-                    Contact Barangay
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      if (!user) {
-                        onRequestAuth();
-                        return;
-                      }
-                      openSightingSheet(
-                        petLatest.id,
-                        e.currentTarget.getBoundingClientRect(),
-                        e.currentTarget
-                      );
-                    }}
-                    className="h-12 w-full rounded-full border border-bud-text/[0.12] bg-bud-surface-well/90 font-body text-sm font-semibold text-bud-text shadow-sm transition-transform active:scale-[0.98] motion-safe:hover:bg-bud-surface-well"
-                  >
-                    Report a sighting
-                  </button>
-                </>
-              )}
+              <div className="mt-6 space-y-3">
+                {petLatest.status !== "REUNITED" && !isOwner && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => void handleContact("owner")}
+                      className="h-14 w-full rounded-full bg-bud-primary font-body text-base font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
+                    >
+                      Contact Owner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleContact("barangay")}
+                      className="h-12 w-full rounded-full border-2 border-bud-accent bg-transparent font-body text-sm font-semibold text-bud-accent shadow-sm transition-transform active:scale-[0.98]"
+                    >
+                      Contact Barangay
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        if (!user) {
+                          onRequestAuth();
+                          return;
+                        }
+                        openSightingSheet(
+                          petLatest.id,
+                          e.currentTarget.getBoundingClientRect(),
+                          e.currentTarget
+                        );
+                      }}
+                      className="h-12 w-full rounded-full border border-bud-text/[0.12] bg-bud-surface-well/90 font-body text-sm font-semibold text-bud-text shadow-sm transition-transform active:scale-[0.98] motion-safe:hover:bg-bud-surface-well"
+                    >
+                      Report a sighting
+                    </button>
+                  </>
+                )}
 
-              {isOwner ? <OwnerPetActions pet={petLatest} variant="detail" onAfterRemove={onBack} /> : null}
-            </div>
+                {isOwner ? <OwnerPetActions pet={petLatest} variant="detail" onAfterRemove={onBack} /> : null}
+              </div>
             </div>
           </div>
         </article>

@@ -46,13 +46,10 @@ export function Notifications({ onClose }: NotificationsProps) {
   }, [filtered]);
 
   return (
-<<<<<<< HEAD
-    <div className="absolute inset-0 z-[7200] bg-bud-bg flex flex-col">
-      <header className="shrink-0 flex items-center justify-between px-4 pt-4 pb-3 border-b border-bud-surface-low">
-=======
-    <div className={`absolute inset-0 z-[55] flex flex-col bg-bud-bg ${quietHours ? "brightness-[0.97]" : ""}`}>
+    <div
+      className={`absolute inset-0 z-[7200] flex flex-col bg-bud-bg ${quietHours ? "brightness-[0.97]" : ""}`}
+    >
       <header className="flex shrink-0 items-center justify-between border-b border-bud-surface-low px-4 pb-3 pt-4">
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         <div className="flex items-center gap-3">
           <button
             type="button"

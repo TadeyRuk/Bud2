@@ -6,10 +6,7 @@ import { normalizeError } from "../lib/api";
 import { enqueue, dequeue, peekAll, getBlob } from "../lib/offlineQueue";
 import { uploadPetPhoto, resizeImage } from "../lib/storage";
 import { DEMO_PETS, DEMO_REPORTER_ID } from "../data/pets";
-<<<<<<< HEAD
-import { agentDebugLog } from "../lib/agentDebugLog";
 import { boundingBoxKm, haversineDistanceKm } from "../lib/geo";
-=======
 import {
   canManagePetAsActor,
   migrateLegacyGuestReporterIds,
@@ -18,7 +15,6 @@ import {
 } from "../lib/petOwnership";
 
 const DEMO_PET_IDS = new Set(DEMO_PETS.map((d) => d.id));
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
 
 export type Pet = DbPet & {
   syncing?: boolean;
@@ -217,14 +213,9 @@ export const usePetStore = create<PetState>()(
           const merged = mergeDemoWithLocalReports(mapDemoPets(), get().pets);
           const lq = q.toLowerCase();
           set({
-<<<<<<< HEAD
-            pets: demos.filter((p) => {
+            pets: merged.filter((p) => {
               const desc = (p.description ?? "").toLowerCase();
               return (
-=======
-            pets: merged.filter(
-              (p) =>
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
                 p.name.toLowerCase().includes(lq) ||
                 (p.breed?.toLowerCase().includes(lq) ?? false) ||
                 desc.includes(lq)
@@ -274,19 +265,7 @@ export const usePetStore = create<PetState>()(
 
       addPet: async (petData, photo) => {
         const tempId = crypto.randomUUID();
-<<<<<<< HEAD
-        // #region agent log
-        agentDebugLog({
-          runId: "post-fix",
-          hypothesisId: "H4",
-          location: "petStore.ts:addPet:entry",
-          message: "addPet started",
-          data: { supabaseConfigured, hasPhoto: Boolean(photo), keys: Object.keys(petData) },
-        });
-        // #endregion
-=======
         const reporterId = await resolveReporterIdForNewPet();
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
         const tempPet: Pet = {
           id: tempId,
           reporter_id: reporterId,
@@ -318,32 +297,10 @@ export const usePetStore = create<PetState>()(
             .insert({
               ...petData,
               image_url: imageUrl,
-<<<<<<< HEAD
-              reporter_id: "",
-=======
               reporter_id: reporterId,
->>>>>>> 11cfd9228edfb7f1375d72afcad54a774c6277c1
             })
             .select()
             .single();
-
-          // #region agent log
-          agentDebugLog({
-            runId: "post-fix",
-            hypothesisId: "H1",
-            location: "petStore.ts:addPet:afterInsert",
-            message: "pets insert result",
-            data: {
-              insertError: insertError
-                ? {
-                    code: insertError.code ?? null,
-                    message: insertError.message?.slice(0, 300) ?? null,
-                    details: String(insertError.details ?? "").slice(0, 200),
-                  }
-                : null,
-            },
-          });
-          // #endregion
 
           if (insertError) throw insertError;
 
@@ -355,21 +312,6 @@ export const usePetStore = create<PetState>()(
 
           return { error: null, petId: (data as DbPet).id };
         } catch (err) {
-          // #region agent log
-          agentDebugLog({
-            runId: "post-fix",
-            hypothesisId: "H2",
-            location: "petStore.ts:addPet:catch",
-            message: "addPet threw",
-            data: {
-              code: typeof err === "object" && err !== null ? String((err as { code?: unknown }).code ?? "") : "",
-              message:
-                typeof err === "object" && err !== null && "message" in err
-                  ? String((err as { message?: unknown }).message).slice(0, 400)
-                  : String(err).slice(0, 400),
-            },
-          });
-          // #endregion
           if (photo) {
             await enqueue(
               { table: "pets", operation: "insert", payload: petData as Record<string, unknown> },

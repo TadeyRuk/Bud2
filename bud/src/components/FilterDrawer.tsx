@@ -4,6 +4,7 @@ import { useUiStore } from "../stores/uiStore";
 import { usePetStore } from "../stores/petStore";
 import { applyFilters } from "../lib/applyFilters";
 import { FILTER_PRESETS } from "../data/filterPresets";
+import { useUserLocation } from "../context/LocationContext";
 
 const SPECIES = [
   { id: "dog" as const, label: "Dog" },
@@ -29,7 +30,12 @@ const DIST_STOPS: Array<0 | 0.5 | 1 | 2 | 3 | 5> = [0, 0.5, 1, 2, 3, 5];
 export function FilterDrawer() {
   const open = useUiStore((s) => s.filterDrawerOpen);
   const setOpen = useUiStore((s) => s.setFilterDrawerOpen);
-  const userLatLng = useUiStore((s) => s.userLatLng);
+  const fallbackLatLng = useUiStore((s) => s.userLatLng);
+  const { position } = useUserLocation();
+  const userLatLng = useMemo<[number, number]>(
+    () => (position ? [position.lat, position.lng] : fallbackLatLng),
+    [position, fallbackLatLng]
+  );
 
   const pets = usePetStore((s) => s.pets);
   const species = useFilterStore((s) => s.species);

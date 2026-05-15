@@ -1,9 +1,10 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import {
   useGeolocation,
   type GeoPosition,
   type GeolocationStatus,
 } from "../hooks/useGeolocation";
+import { useUiStore } from "../stores/uiStore";
 
 type LocationContextValue = {
   position: GeoPosition | null;
@@ -15,6 +16,14 @@ const LocationContext = createContext<LocationContextValue | null>(null);
 
 export function LocationProvider({ children }: { children: ReactNode }) {
   const geo = useGeolocation();
+  const setUserLatLng = useUiStore((s) => s.setUserLatLng);
+
+  useEffect(() => {
+    if (geo.position) {
+      setUserLatLng([geo.position.lat, geo.position.lng]);
+    }
+  }, [geo.position, setUserLatLng]);
+
   return <LocationContext.Provider value={geo}>{children}</LocationContext.Provider>;
 }
 
