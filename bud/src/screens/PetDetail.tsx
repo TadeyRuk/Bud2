@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useUiStore } from "../stores/uiStore";
 import { usePetStore, type Pet } from "../stores/petStore";
@@ -11,6 +11,7 @@ import { OwnerPetActions } from "../components/OwnerPetActions";
 import { useContactTimelineStore } from "../stores/contactTimelineStore";
 import { useStatusHistoryStore } from "../stores/statusHistoryStore";
 import { PetActivityTimeline } from "../components/PetActivityTimeline/PetActivityTimeline";
+import { getFoundResolutionCopy } from "../lib/foundPetResolution";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -58,7 +59,13 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   const reuniteAt = useStatusHistoryStore((s) =>
     s.changes.find((c) => c.petId === petLatest.id && c.to === "REUNITED")?.createdAt
   );
+  const statusHistoryChanges = useStatusHistoryStore((s) => s.changes);
   const isOwner = isPetOwnerInUi(petLatest, user);
+
+  const foundResolution = useMemo(() => {
+    if (petLatest.status !== "FOUND") return null;
+    return getFoundResolutionCopy(petLatest, statusHistoryChanges);
+  }, [petLatest, statusHistoryChanges]);
 
   useEffect(() => {
     const el = bodyScrollRef.current;
@@ -304,7 +311,14 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
             <PetActivityTimeline petId={petLatest.id} petName={petLatest.name} />
 
             <div className="mt-6 space-y-3">
-              {petLatest.status !== "REUNITED" && !isOwner && (
+              {petLatest.status === "FOUND" && !isOwner && foundResolution ? (
+                <div className="rounded-[1.25rem] border border-bud-text/[0.08] bg-bud-surface-well/95 p-4 shadow-sm">
+                  <h3 className="font-headline text-base font-bold text-bud-accent">{foundResolution.headline}</h3>
+                  <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{foundResolution.body}</p>
+                </div>
+              ) : null}
+
+              {petLatest.status === "LOST" && !isOwner ? (
                 <>
                   <button
                     type="button"
@@ -338,7 +352,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                     Report a sighting
                   </button>
                 </>
-              )}
+              ) : null}
 
               {isOwner ? <OwnerPetActions pet={petLatest} variant="detail" onAfterRemove={onBack} /> : null}
             </div>

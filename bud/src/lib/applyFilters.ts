@@ -28,6 +28,8 @@ export function applyFilters(
   ctx: { userLatLng: [number, number] }
 ): Pet[] {
   return pets.filter((p) => {
+    if (filters.stillMissingOnly && p.status !== "LOST") return false;
+
     if (filters.species.length && !filters.species.includes(p.type)) return false;
     if (filters.statuses.length > 0 && !filters.statuses.includes(p.status)) return false;
 

@@ -59,6 +59,7 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
   const reportedWithin = useFilterStore((s) => s.reportedWithin);
   const hasPhoto = useFilterStore((s) => s.hasPhoto);
   const verifiedOnly = useFilterStore((s) => s.verifiedOnly);
+  const stillMissingOnly = useFilterStore((s) => s.stillMissingOnly);
   const filterActiveFn = useFilterStore((s) => s.isActive);
   const filterCountFn = useFilterStore((s) => s.activeCount);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -108,8 +109,8 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
   }
 
   const filterShape = useMemo(
-    () => ({ species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly }),
-    [species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly]
+    () => ({ species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly, stillMissingOnly }),
+    [species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly, stillMissingOnly]
   );
 
   const filtered = useMemo(() => {
@@ -352,6 +353,7 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
                         </div>
                       </div>
 
+                    {pet.status === "LOST" ? (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -362,6 +364,7 @@ export function CommunityBoard({ listScrollRef, onSelectPet, onRequestAuth }: Co
                       >
                         I Have Info
                       </button>
+                    ) : null}
                     </div>
                   </div>
                 </div>
