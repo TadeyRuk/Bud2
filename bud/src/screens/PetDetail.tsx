@@ -1,9 +1,16 @@
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "../stores/authStore";
+import { useUiStore } from "../stores/uiStore";
 import { usePetStore, type Pet } from "../stores/petStore";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 import { showError, showSuccess } from "../lib/api";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
 import { DEMO_REPORTER_ID } from "../data/pets";
+import { isPetOwnerInUi } from "../lib/petOwnership";
+import { OwnerPetActions } from "../components/OwnerPetActions";
+import { useContactTimelineStore } from "../stores/contactTimelineStore";
+import { useStatusHistoryStore } from "../stores/statusHistoryStore";
+import { PetActivityTimeline } from "../components/PetActivityTimeline/PetActivityTimeline";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -42,13 +49,26 @@ async function sharePet(pet: Pet) {
 }
 
 export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
-  const updatePetStatus = usePetStore((s) => s.updatePetStatus);
-  const isOwner = user ? pet.reporter_id === user.id : pet.reporter_id === "";
+  const profile = useAuthStore((s) => s.profile);
+  const openSightingSheet = useUiStore((s) => s.openSightingSheet);
+  const recordContact = useContactTimelineStore((s) => s.recordContact);
+  const petLatest = usePetStore((s) => s.pets.find((p) => p.id === pet.id)) ?? pet;
+  const reuniteAt = useStatusHistoryStore((s) =>
+    s.changes.find((c) => c.petId === petLatest.id && c.to === "REUNITED")?.createdAt
+  );
+  const isOwner = isPetOwnerInUi(petLatest, user);
+
+  useEffect(() => {
+    const el = bodyScrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: 0, behavior: "auto" });
+  }, [pet.id]);
 
   const metaLine = [
-    [pet.breed, pet.color].filter(Boolean).join(" · ") || "Pet",
-    `#${pet.id.slice(0, 8)}`,
+    [petLatest.breed, petLatest.color].filter(Boolean).join(" · ") || "Pet",
+    `#${petLatest.id.slice(0, 8)}`,
   ].join(" · ");
 
   async function handleContact(type: "owner" | "barangay") {
@@ -59,7 +79,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
 
     if (supabaseConfigured) {
       const { error } = await supabase.from("contacts").insert({
-        pet_id: pet.id,
+        pet_id: petLatest.id,
         requester_id: user.id,
         contact_type: type,
         message: "",
@@ -71,16 +91,16 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
       }
 
       if (
-        pet.reporter_id &&
-        pet.reporter_id !== DEMO_REPORTER_ID &&
-        pet.reporter_id !== user.id
+        petLatest.reporter_id &&
+        petLatest.reporter_id !== DEMO_REPORTER_ID &&
+        petLatest.reporter_id !== user.id
       ) {
         await supabase.from("notifications").insert({
-          user_id: pet.reporter_id,
+          user_id: petLatest.reporter_id,
           type: "contact_request" as const,
-          title: `Someone wants to help with ${pet.name}`,
+          title: `Someone wants to help with ${petLatest.name}`,
           body: `A neighbor reached out via ${type === "owner" ? "direct contact" : "barangay desk"}.`,
-          pet_id: pet.id,
+          pet_id: petLatest.id,
           read: false,
         });
       }
@@ -91,23 +111,29 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
     } else {
       showSuccess("Contact request sent to the owner!");
     }
-  }
 
-  async function handleMarkReunited() {
-    const { error } = await updatePetStatus(pet.id, "REUNITED");
-    if (error) {
-      showError(error);
-    } else {
-      showSuccess(`${pet.name} has been marked as reunited!`);
-    }
+    recordContact({
+      petId: petLatest.id,
+      contactType: type,
+      byUserId: user.id,
+      byUserName: profile?.display_name?.trim() || user.email || "Neighbor",
+    });
   }
 
   const glassFrame =
-    "overflow-hidden rounded-[1.85rem] border border-white/50 bg-white/[0.22] shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04] backdrop-blur-xl backdrop-saturate-150";
+    "overflow-hidden rounded-2xl border border-white/50 bg-white/[0.22] shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04] backdrop-blur-xl backdrop-saturate-150";
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col bg-bud-bg/55 backdrop-blur-[3px] transition-opacity duration-200">
-      <header className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between p-3 pt-4">
+    <div className="absolute inset-0 z-50 flex h-full max-h-full min-h-0 flex-col overflow-hidden bg-bud-bg/55 backdrop-blur-[3px] transition-opacity duration-200">
+      {petLatest.status === "REUNITED" && reuniteAt ? (
+        <div className="absolute left-0 right-0 top-0 z-[60] bg-blue-500/90 px-4 py-1.5 text-center font-body text-[11px] font-bold uppercase tracking-wide text-white">
+          Reunited on{" "}
+          {new Date(reuniteAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+        </div>
+      ) : null}
+      <header
+        className={`absolute left-0 right-0 z-50 flex items-center justify-between p-3 pr-3 pt-4 ${petLatest.status === "REUNITED" && reuniteAt ? "top-7" : "top-0"}`}
+      >
         <button
           type="button"
           onClick={onBack}
@@ -120,7 +146,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
         </button>
         <button
           type="button"
-          onClick={() => sharePet(pet)}
+          onClick={() => sharePet(petLatest)}
           aria-label="Share"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/40 text-bud-text shadow-sm backdrop-blur-md transition-transform active:scale-95"
         >
@@ -130,13 +156,16 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-8 pt-14">
+      <div
+        ref={bodyScrollRef}
+        className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pb-[max(2rem,env(safe-area-inset-bottom,0px)+12px)] [-webkit-overflow-scrolling:touch] touch-pan-y ${petLatest.status === "REUNITED" && reuniteAt ? "pt-24" : "pt-14"}`}
+      >
         <article className={`mx-auto w-full max-w-lg ${glassFrame}`}>
-          <div className="relative mx-auto aspect-[3/4] max-h-[min(52vh,400px)] w-full overflow-hidden bg-gradient-to-br from-bud-surface-well to-bud-surface-low">
+          <div className="relative mx-auto aspect-[3/4] max-h-64 w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-bud-surface-well to-bud-surface-low">
             <img
-              src={pet.image_url || PET_IMAGE_PLACEHOLDER}
+              src={petLatest.image_url || PET_IMAGE_PLACEHOLDER}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover object-[center_22%]"
+              className="absolute inset-0 h-full w-full rounded-t-2xl object-cover object-[center_22%]"
               loading="eager"
               decoding="async"
               onError={(e) => {
@@ -156,15 +185,15 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
             <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/30" />
 
             <div className="absolute left-3 top-3 z-[2]">
-              <GlassPetStatusChip pet={pet} />
+              <GlassPetStatusChip pet={petLatest} />
             </div>
 
             <div className="absolute bottom-0 left-0 right-0 z-[2] space-y-2 px-4 pb-5 pt-16">
               <div className="flex items-start gap-2">
-                <h1 className="font-headline flex-1 text-[1.65rem] font-semibold leading-[1.15] tracking-tight text-[#1c1c19]">
-                  {pet.name}
+                <h1 className="font-headline flex-1 text-2xl font-bold leading-tight tracking-tight text-[#1c1c19]">
+                  {petLatest.name}
                 </h1>
-                {pet.status === "REUNITED" && (
+                {petLatest.status === "REUNITED" && (
                   <span className="shrink-0 rounded-full bg-white/90 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-wide text-green-700 shadow-sm backdrop-blur-sm">
                     Reunited
                   </span>
@@ -195,7 +224,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
 
           <div className="relative overflow-hidden border-t border-white/45 bg-gradient-to-b from-white/[0.42] to-white/[0.28] px-4 py-4 backdrop-blur-2xl">
             <div
-              className="pointer-events-none absolute inset-0 overflow-hidden rounded-b-[1.85rem]"
+              className="pointer-events-none absolute inset-0 overflow-hidden rounded-b-2xl"
               aria-hidden
             >
               <div className="absolute -right-12 top-6 h-44 w-44 rounded-full bg-bud-primary/[0.18] blur-3xl" />
@@ -204,7 +233,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
               <div className="absolute right-1/4 bottom-8 h-28 w-28 rounded-full bg-white/50 blur-2xl" />
             </div>
 
-            <div className="relative z-[1] flex items-start justify-between gap-4 rounded-xl px-1 py-1">
+            <div className="relative z-[1] flex items-start justify-between gap-4 border-b border-black/5 px-1 py-3">
               <div className="flex min-w-0 flex-1 gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-white/55 shadow-sm backdrop-blur-md">
                   <svg
@@ -228,15 +257,15 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                     Last seen
                   </p>
                   <p className="font-body text-sm font-semibold leading-snug text-bud-text line-clamp-3">
-                    {pet.location_text || "Location shared"}
+                    {petLatest.location_text || "Location shared"}
                   </p>
                 </div>
               </div>
               <div className="shrink-0 pt-1 text-right">
                 <p className="font-headline text-lg font-bold tabular-nums leading-none text-bud-primary drop-shadow-sm">
-                  {pet.date
-                    ? pet.date.slice(0, 10)
-                    : new Date(pet.created_at).toLocaleDateString(undefined, {
+                  {petLatest.date
+                    ? petLatest.date.slice(0, 10)
+                    : new Date(petLatest.created_at).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
                       })}
@@ -248,59 +277,70 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
             </div>
 
             <div className="relative z-[1]">
-            <dl className="mt-4 grid grid-cols-2 gap-2 font-body text-sm">
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+            <dl className="mt-0 grid grid-cols-2 gap-0 font-body text-sm">
+              <div className="border-b border-black/5 p-3 backdrop-blur-md">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Breed</dt>
-                <dd className="mt-1 font-medium text-bud-text">{pet.breed ?? "—"}</dd>
+                <dd className="mt-1 font-medium text-bud-text">{petLatest.breed ?? "—"}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="border-b border-black/5 p-3 backdrop-blur-md">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Color / collar</dt>
-                <dd className="mt-1 font-medium text-bud-text">{pet.color}</dd>
+                <dd className="mt-1 font-medium text-bud-text">{petLatest.color}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="border-b border-black/5 p-3 backdrop-blur-md">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Gender</dt>
-                <dd className="mt-1 font-medium text-bud-text">{pet.gender}</dd>
+                <dd className="mt-1 font-medium text-bud-text">{petLatest.gender}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="border-b border-black/5 p-3 backdrop-blur-md">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Fur</dt>
-                <dd className="mt-1 font-medium text-bud-text">{pet.fur_color}</dd>
+                <dd className="mt-1 font-medium text-bud-text">{petLatest.fur_color}</dd>
               </div>
             </dl>
 
-            <section className="mt-5">
-              <h2 className="font-headline text-lg font-bold text-bud-text">About {pet.name}</h2>
-              <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{pet.description}</p>
+            <section className="mt-5 border-b border-black/5 pb-5">
+              <h2 className="font-headline text-lg font-bold text-bud-text">About {petLatest.name}</h2>
+              <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{petLatest.description}</p>
             </section>
 
+            <PetActivityTimeline petId={petLatest.id} petName={petLatest.name} />
+
             <div className="mt-6 space-y-3">
-              {pet.status !== "REUNITED" && (
+              {petLatest.status !== "REUNITED" && !isOwner && (
                 <>
                   <button
                     type="button"
                     onClick={() => handleContact("owner")}
-                    className="w-full rounded-[1.12rem] bg-bud-primary py-3.5 font-body text-sm font-bold uppercase tracking-widest text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
+                    className="h-14 w-full rounded-full bg-bud-primary font-body text-base font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
                   >
                     Contact Owner
                   </button>
                   <button
                     type="button"
                     onClick={() => handleContact("barangay")}
-                    className="w-full rounded-[1.12rem] border-2 border-bud-accent bg-white/25 py-3.5 font-body text-sm font-bold uppercase tracking-widest text-bud-accent backdrop-blur-sm transition-transform active:scale-[0.98]"
+                    className="h-12 w-full rounded-full border-2 border-bud-accent bg-transparent font-body text-sm font-semibold text-bud-accent shadow-sm transition-transform active:scale-[0.98]"
                   >
                     Contact Barangay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      if (!user) {
+                        onRequestAuth();
+                        return;
+                      }
+                      openSightingSheet(
+                        petLatest.id,
+                        e.currentTarget.getBoundingClientRect(),
+                        e.currentTarget
+                      );
+                    }}
+                    className="h-12 w-full rounded-full border border-bud-text/[0.12] bg-bud-surface-well/90 font-body text-sm font-semibold text-bud-text shadow-sm transition-transform active:scale-[0.98] motion-safe:hover:bg-bud-surface-well"
+                  >
+                    Report a sighting
                   </button>
                 </>
               )}
 
-              {isOwner && pet.status !== "REUNITED" && (
-                <button
-                  type="button"
-                  onClick={handleMarkReunited}
-                  className="w-full rounded-[1.12rem] bg-green-600 py-3.5 font-body text-sm font-bold uppercase tracking-widest text-white shadow-ambient transition-transform active:scale-[0.98]"
-                >
-                  Mark as Reunited
-                </button>
-              )}
+              {isOwner ? <OwnerPetActions pet={petLatest} variant="detail" onAfterRemove={onBack} /> : null}
             </div>
             </div>
           </div>

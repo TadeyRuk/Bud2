@@ -16,6 +16,8 @@ type NotificationState = {
   startPolling: (userId: string) => void;
   stopPolling: () => void;
   drainOfflineQueue: () => Promise<void>;
+  /** Prototype / offline: prepend a notification and bump unread (for demo bell). */
+  addLocalNotification: (n: Omit<Notification, "id" | "created_at">) => void;
 };
 
 export const useNotificationStore = create<NotificationState>()(
@@ -155,6 +157,25 @@ export const useNotificationStore = create<NotificationState>()(
             break;
           }
         }
+      },
+
+      addLocalNotification: (partial) => {
+        const id =
+          globalThis.crypto?.randomUUID?.() ?? `notif_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        const row: Notification = {
+          id,
+          user_id: partial.user_id,
+          type: partial.type,
+          title: partial.title,
+          body: partial.body,
+          pet_id: partial.pet_id,
+          read: partial.read ?? false,
+          created_at: new Date().toISOString(),
+        };
+        set((s) => ({
+          notifications: [row, ...s.notifications],
+          unreadCount: s.unreadCount + (row.read ? 0 : 1),
+        }));
       },
     }),
     {

@@ -11,6 +11,7 @@
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
     "@supabase/supabase-js": "^2.105.3",
+    "html-to-image": "^1.11.13",
     "idb-keyval": "^6.2.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

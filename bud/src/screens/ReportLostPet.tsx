@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePetStore } from "../stores/petStore";
 import { showError, showSuccess } from "../lib/api";
 import { getOnboardingProfile } from "../lib/onboardingProfile";
+import { useAuthStore } from "../stores/authStore";
+import { useStatusHistoryStore } from "../stores/statusHistoryStore";
+import { DEMO_REPORTER_ID } from "../data/pets";
 import type { PetType } from "../types/database";
+import { LocationPickerMap, reverseGeocodeRoughAddress } from "../components/LocationPickerMap";
 
 type ReportLostPetProps = {
   onRequestAuth?: () => void;
@@ -73,7 +77,10 @@ export function ReportLostPet(_props: ReportLostPetProps) {
   const [petType, setPetType] = useState<PetType>("dog");
   const [otherSpecies, setOtherSpecies] = useState("");
   const [name, setName] = useState("");
+  const [pinLat, setPinLat] = useState<number | null>(null);
+  const [pinLng, setPinLng] = useState<number | null>(null);
   const [location, setLocation] = useState("");
+  const [landmark, setLandmark] = useState("");
   const [traits, setTraits] = useState("");
   const [color, setColor] = useState("");
   const [gender, setGender] = useState("Unknown");
@@ -81,19 +88,29 @@ export function ReportLostPet(_props: ReportLostPetProps) {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectedFile = useRef<File | null>(null);
+  /** When true, reverse-geocode must not overwrite the area label (user is editing). */
+  const locationEditedByUser = useRef(false);
 
   const addPet = usePetStore((s) => s.addPet);
 
   useEffect(() => {
-    const o = getOnboardingProfile();
-    if (!o) return;
-    const combined = [o.barangay, o.city].filter(Boolean).join(", ");
-    setLocation((prev) => (prev.trim() ? prev : combined));
-  }, []);
-
-  useEffect(() => {
     if (petType !== "other") setOtherSpecies("");
   }, [petType]);
+
+  useEffect(() => {
+    if (pinLat == null || pinLng == null) return;
+    locationEditedByUser.current = false;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void reverseGeocodeRoughAddress(pinLat, pinLng).then((label) => {
+        if (!cancelled && !locationEditedByUser.current) setLocation(label);
+      });
+    }, 420);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [pinLat, pinLng]);
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -114,7 +131,7 @@ export function ReportLostPet(_props: ReportLostPetProps) {
       return nameOk && otherOk;
     }
     if (current === 2) return true;
-    if (current === 3) return location.trim().length > 0;
+    if (current === 3) return pinLat != null && pinLng != null;
     return true;
   }
 
@@ -127,10 +144,13 @@ export function ReportLostPet(_props: ReportLostPetProps) {
       showError("Please describe the type of pet");
       return;
     }
-    if (!location.trim()) {
-      showError("Please enter the last seen location");
+    if (pinLat == null || pinLng == null) {
+      showError("Please pick the last seen spot on the map");
       return;
     }
+
+    const areaLabel = location.trim() || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`;
+    const locationText = landmark.trim() ? `${landmark.trim()} · ${areaLabel}` : areaLabel;
 
     setSubmitting(true);
 
@@ -143,9 +163,9 @@ export function ReportLostPet(_props: ReportLostPetProps) {
         gender,
         status: "LOST",
         type: petType,
-        location_text: location.trim(),
-        lat: null,
-        lng: null,
+        location_text: locationText,
+        lat: pinLat,
+        lng: pinLng,
         image_url: null,
         description: traits.trim(),
       },
@@ -158,9 +178,23 @@ export function ReportLostPet(_props: ReportLostPetProps) {
       showError(result.error);
     } else {
       showSuccess("Report submitted! Your pet appears on the community board.");
+      if (result.petId) {
+        const auth = useAuthStore.getState();
+        useStatusHistoryStore.getState().recordChange({
+          petId: result.petId,
+          from: null,
+          to: "LOST",
+          byUserId: auth.user?.id ?? DEMO_REPORTER_ID,
+          byUserName:
+            auth.profile?.display_name?.trim() || onboardingSnapshot?.name?.trim() || "Reporter",
+        });
+      }
       setStep(1);
       setName("");
+      setPinLat(null);
+      setPinLng(null);
       setLocation("");
+      setLandmark("");
       setTraits("");
       setColor("");
       setGender("Unknown");
@@ -169,11 +203,6 @@ export function ReportLostPet(_props: ReportLostPetProps) {
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
       selectedFile.current = null;
-      const o = getOnboardingProfile();
-      if (o) {
-        const combined = [o.barangay, o.city].filter(Boolean).join(", ");
-        setLocation(combined);
-      }
     }
   }
 
@@ -321,14 +350,57 @@ export function ReportLostPet(_props: ReportLostPetProps) {
         {step === 3 && (
           <section className="flex flex-col gap-4 rounded-[1.75rem] border border-white/45 bg-white/40 p-5 backdrop-blur-xl">
             <div>
-              <label htmlFor="last-seen" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
-                Last seen location
+              <p className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">Last seen location</p>
+              <p className="mt-1.5 font-body text-xs leading-relaxed text-bud-text-muted">
+                Tap the map to drop a pin, then drag it to the exact spot—like choosing a pickup point in a ride app.
+              </p>
+              <div className="mt-3">
+                <LocationPickerMap
+                  pinLat={pinLat}
+                  pinLng={pinLng}
+                  onPick={(lat, lng) => {
+                    locationEditedByUser.current = false;
+                    setPinLat(lat);
+                    setPinLng(lng);
+                  }}
+                />
+              </div>
+              {pinLat != null && pinLng != null ? (
+                <p className="mt-2 font-body text-[11px] leading-snug text-bud-text-muted">
+                  <span className="font-semibold text-bud-text/80">Map pin:</span>{" "}
+                  {pinLat.toFixed(5)}, {pinLng.toFixed(5)}
+                  <span className="block pt-1">
+                    The area label below describes this pin. The map recenters on the pin when you move it.
+                  </span>
+                </p>
+              ) : null}
+            </div>
+
+            <div>
+              <label htmlFor="last-seen-area" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
+                Area label (for this pin)
               </label>
               <input
-                id="last-seen"
+                id="last-seen-area"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Street, landmark, or barangay"
+                onChange={(e) => {
+                  locationEditedByUser.current = true;
+                  setLocation(e.target.value);
+                }}
+                placeholder="Fills from the pin — edit anytime"
+                className={`${inputWell} mt-2`}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="landmark" className="font-body text-xs font-semibold uppercase tracking-wide text-bud-text">
+                Landmark (optional)
+              </label>
+              <input
+                id="landmark"
+                value={landmark}
+                onChange={(e) => setLandmark(e.target.value)}
+                placeholder="e.g. in front of 7-Eleven, near the park gate"
                 className={`${inputWell} mt-2`}
               />
             </div>
@@ -365,7 +437,10 @@ export function ReportLostPet(_props: ReportLostPetProps) {
               <span className="text-bud-text-muted">Gender:</span> {gender}
             </p>
             <p>
-              <span className="text-bud-text-muted">Last seen:</span> {location || "—"}
+              <span className="text-bud-text-muted">Last seen:</span>{" "}
+              {pinLat != null && pinLng != null
+                ? `${landmark.trim() ? `${landmark.trim()} · ` : ""}${location.trim() || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`}`
+                : "—"}
             </p>
             <p>
               <span className="text-bud-text-muted">Photo:</span> {preview ? "Attached" : "None"}

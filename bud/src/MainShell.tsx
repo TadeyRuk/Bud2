@@ -10,15 +10,22 @@ import { Profile } from "./screens/Profile";
 import { PetDetail } from "./screens/PetDetail";
 import { AuthScreen } from "./screens/Auth";
 import { Notifications } from "./screens/Notifications";
+import { SightingSheet } from "./components/SightingSheet/SightingSheet";
 import { usePetStore, type Pet } from "./stores/petStore";
 import { useAuthStore } from "./stores/authStore";
 import { useNotificationStore } from "./stores/notificationStore";
 import { useUiStore } from "./stores/uiStore";
+import { useSightingStore } from "./stores/sightingStore";
+import { useStatusHistoryStore } from "./stores/statusHistoryStore";
 import { useNetworkStatus } from "./lib/networkStatus";
+import { getOnboardingProfile } from "./lib/onboardingProfile";
 import { showError, showSuccess } from "./lib/api";
 import { supabase, supabaseConfigured } from "./lib/supabase";
 import { BudLogoMark } from "./components/BudLogoMark";
 import { LocationProvider } from "./context/LocationContext";
+import { BellBadge } from "./components/BellBadge";
+import { FilterDrawer } from "./components/FilterDrawer";
+import { ReunionOverlay } from "./components/ReunionOverlay";
 
 function AppHeader({
   activeTab,
@@ -33,8 +40,6 @@ function AppHeader({
   onSync: () => void;
   syncing: boolean;
 }) {
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
-
   const scrollCommunityTop = useCallback(() => {
     if (activeTab !== "community") return;
     const el = communityScrollRef.current;
@@ -76,32 +81,7 @@ function AppHeader({
             />
           </svg>
         </button>
-        <button
-          type="button"
-          aria-label="Notifications"
-          onClick={onNotifications}
-          className="relative rounded-full border border-white/45 bg-white/40 p-2 text-bud-primary shadow-sm backdrop-blur-md transition-colors hover:bg-white/55"
-        >
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.8}
-            stroke="currentColor"
-            aria-hidden
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
-            />
-          </svg>
-          {unreadCount > 0 && (
-            <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </button>
+        <BellBadge onClick={onNotifications} />
       </div>
     </header>
   );
@@ -119,6 +99,8 @@ export function MainShell() {
   const fetchPets = usePetStore((s) => s.fetchPets);
   const subscribeRealtime = usePetStore((s) => s.subscribeRealtime);
   const drainPetQueue = usePetStore((s) => s.drainOfflineQueue);
+  const seedDemoIfEmpty = useSightingStore((s) => s.seedDemoIfEmpty);
+  const seedStatusHistoryIfEmpty = useStatusHistoryStore((s) => s.seedFromDemoIfEmpty);
 
   const user = useAuthStore((s) => s.user);
   const initialize = useAuthStore((s) => s.initialize);
@@ -163,6 +145,15 @@ export function MainShell() {
       stopPolling();
     };
   }, [user, fetchNotifications, subscribeNotifications, startPolling, stopPolling, realtimeReconnectKey]);
+
+  useEffect(() => {
+    const name = getOnboardingProfile()?.name?.trim() ?? "Neighbor";
+    seedDemoIfEmpty(pets[0]?.id, name);
+  }, [pets, seedDemoIfEmpty]);
+
+  useEffect(() => {
+    seedStatusHistoryIfEmpty();
+  }, [seedStatusHistoryIfEmpty]);
 
   useEffect(() => {
     if (isOnline) {
@@ -237,7 +228,7 @@ export function MainShell() {
           {activeTab === "community" ? (
             <div
               ref={communityScrollRef}
-              className="bud-tab-fade flex min-h-0 flex-1 flex-col overflow-y-auto pb-[5.25rem]"
+              className="bud-tab-fade flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain pb-[5.25rem] [scroll-padding-bottom:5.5rem] [scroll-padding-top:0.5rem]"
             >
               {!selectedPet && !showAuth && !showNotifications && (
                 <AppHeader
@@ -248,7 +239,7 @@ export function MainShell() {
                   syncing={syncing}
                 />
               )}
-              <CommunityBoard onSelectPet={openPet} onRequestAuth={requestAuth} />
+              <CommunityBoard listScrollRef={communityScrollRef} onSelectPet={openPet} onRequestAuth={requestAuth} />
             </div>
           ) : null}
 
@@ -294,6 +285,11 @@ export function MainShell() {
         {showAuth && <AuthScreen onClose={() => setShowAuth(false)} />}
 
         {showNotifications && <Notifications onClose={() => setShowNotifications(false)} />}
+
+        <SightingSheet />
+
+        <FilterDrawer />
+        <ReunionOverlay />
       </div>
 
       <Toaster

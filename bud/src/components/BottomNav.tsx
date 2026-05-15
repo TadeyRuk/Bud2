@@ -26,10 +26,8 @@ function TabButton({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-current={isActive ? "page" : undefined}
-      className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0 rounded-full px-1 py-1 transition-all duration-200 active:scale-95 ${
-        isActive
-          ? "bg-bud-primary text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_6px_18px_rgba(139,58,21,0.45)]"
-          : "text-bud-text/72 hover:bg-white/45 hover:text-bud-text"
+      className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0 rounded-full px-1 py-1 transition-colors duration-200 active:scale-95 ${
+        isActive ? "text-bud-primary" : "text-gray-400 hover:text-bud-text/70"
       }`}
     >
       {icon}
@@ -44,7 +42,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
       className="pointer-events-none absolute bottom-5 left-1/2 z-40 w-[min(20.5rem,calc(100%-2.25rem))] -translate-x-1/2 px-0"
       aria-label="Main"
     >
-      <div className="pointer-events-auto rounded-full border border-white/55 bg-white/[0.26] px-1 py-1 shadow-[0_16px_44px_rgba(44,26,14,0.14),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/35">
+      <div className="pointer-events-auto rounded-full border border-black/10 bg-white/95 px-1 py-1 shadow-[0_16px_44px_rgba(44,26,14,0.14)] backdrop-blur-sm">
         <div className="relative grid grid-cols-4 items-end gap-0">
           <TabButton
             label="Community"
@@ -97,10 +95,8 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               type="button"
               onClick={() => onChange("report")}
               aria-label="Report lost pet"
-              className={`absolute -top-7 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border-0 bg-bud-primary/[0.72] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.42),0_10px_28px_rgba(139,58,21,0.34)] backdrop-blur-2xl backdrop-saturate-150 transition-transform duration-200 active:scale-95 ${
-                active === "report"
-                  ? "scale-105 bg-bud-primary/[0.88] shadow-[inset_0_1px_0_rgba(255,255,255,0.48),0_12px_34px_rgba(139,58,21,0.42)]"
-                  : ""
+              className={`absolute -top-8 left-1/2 flex -translate-x-1/2 items-center justify-center rounded-full bg-bud-primary p-3 text-white shadow-lg transition-all duration-200 active:scale-95 ${
+                active === "report" ? "ring-2 ring-bud-primary/30" : ""
               }`}
             >
               <svg
@@ -115,8 +111,8 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               </svg>
             </button>
             <span
-              className={`pb-0.5 font-body text-[9px] font-semibold uppercase tracking-wider ${
-                active === "report" ? "text-bud-primary" : "text-bud-text/65"
+              className={`pb-0.5 font-body text-[9px] font-semibold uppercase tracking-wider transition-colors duration-200 ${
+                active === "report" ? "text-bud-primary" : "text-gray-400"
               }`}
             >
               Report

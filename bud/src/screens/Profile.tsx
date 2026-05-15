@@ -6,6 +6,8 @@ import { resizeImage, uploadAvatar } from "../lib/storage";
 import { showError, showSuccess } from "../lib/api";
 import { StatusBadge } from "../components/StatusBadge";
 import { getOnboardingProfile, roleLabel } from "../lib/onboardingProfile";
+import { getActorReporterIdForUi, migrateLegacyGuestReporterIds } from "../lib/petOwnership";
+import { OwnerPetActions } from "../components/OwnerPetActions";
 
 const glassPanel =
   "rounded-[1.35rem] border border-white/45 bg-white/[0.38] shadow-[0_24px_56px_-20px_rgba(44,26,14,0.18)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/32";
@@ -20,6 +22,32 @@ type ProfileProps = {
   onRequestAuth?: () => void;
   onSelectPet: (pet: Pet) => void;
 };
+
+function MyReportRow({ petId, onOpen }: { petId: string; onOpen: (pet: Pet) => void }) {
+  const pet = usePetStore((s) => s.pets.find((p) => p.id === petId));
+  if (!pet) return null;
+
+  return (
+    <div className={`flex flex-col overflow-hidden ${glassRow}`}>
+      <button type="button" onClick={() => onOpen(pet)} className="flex w-full items-center gap-3 px-4 py-3 text-left">
+        <img
+          src={pet.image_url || ""}
+          alt=""
+          className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/50"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="font-headline truncate text-sm font-bold text-bud-text">{pet.name}</p>
+          <p className="font-body truncate text-xs text-bud-text-muted">{pet.location_text}</p>
+        </div>
+        <StatusBadge status={pet.status} />
+      </button>
+      <OwnerPetActions pet={pet} variant="profile" />
+    </div>
+  );
+}
 
 function initialsFromName(name: string): string {
   const parts = name
@@ -58,8 +86,10 @@ export function Profile({ onSelectPet }: ProfileProps) {
   }, [profile]);
 
   const myPets = useMemo(() => {
-    if (user) return pets.filter((p) => p.reporter_id === user.id);
-    return pets.filter((p) => p.reporter_id === "");
+    const list = migrateLegacyGuestReporterIds(pets);
+    const actor = getActorReporterIdForUi(user);
+    if (!actor) return [];
+    return list.filter((p) => p.reporter_id === actor);
   }, [pets, user]);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -137,26 +167,7 @@ export function Profile({ onSelectPet }: ProfileProps) {
             <h2 className="font-headline mb-3 px-1 text-center text-lg font-bold text-bud-text">My reports</h2>
             <div className="space-y-2.5">
               {myPets.map((pet) => (
-                <button
-                  key={pet.id}
-                  type="button"
-                  onClick={() => onSelectPet(pet)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left ${glassRow}`}
-                >
-                  <img
-                    src={pet.image_url || ""}
-                    alt=""
-                    className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/50"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-headline truncate text-sm font-bold text-bud-text">{pet.name}</p>
-                    <p className="font-body truncate text-xs text-bud-text-muted">{pet.location_text}</p>
-                  </div>
-                  <StatusBadge status={pet.status === "REUNITED" ? "FOUND" : pet.status} />
-                </button>
+                <MyReportRow key={pet.id} petId={pet.id} onOpen={onSelectPet} />
               ))}
             </div>
           </section>
@@ -317,26 +328,7 @@ export function Profile({ onSelectPet }: ProfileProps) {
           <h2 className="font-headline mb-3 px-1 text-center text-lg font-bold text-bud-text">My reports</h2>
           <div className="space-y-2.5">
             {myPets.map((pet) => (
-              <button
-                key={pet.id}
-                type="button"
-                onClick={() => onSelectPet(pet)}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left ${glassRow}`}
-              >
-                <img
-                  src={pet.image_url || ""}
-                  alt=""
-                  className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/50"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-headline truncate text-sm font-bold text-bud-text">{pet.name}</p>
-                  <p className="font-body truncate text-xs text-bud-text-muted">{pet.location_text}</p>
-                </div>
-                <StatusBadge status={pet.status === "REUNITED" ? "FOUND" : pet.status} />
-              </button>
+              <MyReportRow key={pet.id} petId={pet.id} onOpen={onSelectPet} />
             ))}
           </div>
         </section>
