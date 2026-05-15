@@ -1,22 +1,23 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import { Toaster } from "react-hot-toast";
 import { BottomNav, type TabId } from "./components/BottomNav";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { OnboardingModal } from "./components/OnboardingModal";
 import { CommunityBoard } from "./screens/CommunityBoard";
 import { MapView } from "./screens/MapView";
 import { ReportLostPet } from "./screens/ReportLostPet";
 import { Profile } from "./screens/Profile";
 import { PetDetail } from "./screens/PetDetail";
-import { AuthScreen } from "./screens/Auth";
 import { Notifications } from "./screens/Notifications";
 import { usePetStore, type Pet } from "./stores/petStore";
-import { useAuthStore } from "./stores/authStore";
 import { useNotificationStore } from "./stores/notificationStore";
 import { useUiStore } from "./stores/uiStore";
 import { useNetworkStatus } from "./lib/networkStatus";
 import { showError, showSuccess } from "./lib/api";
-import { supabase, supabaseConfigured } from "./lib/supabase";
+import { supabaseConfigured } from "./lib/supabase";
+import { getOnboardingProfile } from "./lib/onboardingProfile";
 import { BudLogoMark } from "./components/BudLogoMark";
 import { LocationProvider } from "./context/LocationContext";
 
@@ -120,16 +121,10 @@ export function MainShell() {
   const subscribeRealtime = usePetStore((s) => s.subscribeRealtime);
   const drainPetQueue = usePetStore((s) => s.drainOfflineQueue);
 
-  const user = useAuthStore((s) => s.user);
-  const initialize = useAuthStore((s) => s.initialize);
-
-  const subscribeNotifications = useNotificationStore((s) => s.subscribeRealtime);
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
-  const startPolling = useNotificationStore((s) => s.startPolling);
-  const stopPolling = useNotificationStore((s) => s.stopPolling);
   const drainNotifQueue = useNotificationStore((s) => s.drainOfflineQueue);
 
-  const [showAuth, setShowAuth] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !getOnboardingProfile());
   const [showNotifications, setShowNotifications] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [realtimeReconnectKey, setRealtimeReconnectKey] = useState(0);
@@ -137,10 +132,13 @@ export function MainShell() {
   const isOnline = useNetworkStatus();
 
   const selectedPet = selectedPetId ? pets.find((p) => p.id === selectedPetId) : undefined;
+  const overlayOpen = showOnboarding || showNotifications;
 
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
+  const [portalRootEl, setPortalRootEl] = useState<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    setPortalRootEl(document.getElementById("bud-phone-overlay-portal"));
+  }, []);
 
   useEffect(() => {
     const unsub = subscribeRealtime();
@@ -150,19 +148,6 @@ export function MainShell() {
   useEffect(() => {
     fetchPets(true);
   }, [fetchPets]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    fetchNotifications();
-    const unsubNotif = subscribeNotifications(user.id);
-    startPolling(user.id);
-
-    return () => {
-      unsubNotif();
-      stopPolling();
-    };
-  }, [user, fetchNotifications, subscribeNotifications, startPolling, stopPolling, realtimeReconnectKey]);
 
   useEffect(() => {
     if (isOnline) {
@@ -190,10 +175,6 @@ export function MainShell() {
     [setActiveTab, setSelectedPetId]
   );
 
-  const requestAuth = useCallback(() => {
-    setShowAuth(true);
-  }, []);
-
   const syncWithDatabase = useCallback(async () => {
     if (syncing) return;
 
@@ -209,14 +190,10 @@ export function MainShell() {
 
     setSyncing(true);
     try {
-      await supabase.auth.refreshSession();
       await drainPetQueue();
       await fetchPets(true);
-
-      if (user) {
-        await drainNotifQueue();
-        await fetchNotifications();
-      }
+      await drainNotifQueue();
+      await fetchNotifications();
 
       setRealtimeReconnectKey((key) => key + 1);
       showSuccess("Synced with the database.");
@@ -225,89 +202,103 @@ export function MainShell() {
     } finally {
       setSyncing(false);
     }
-  }, [drainPetQueue, drainNotifQueue, fetchNotifications, fetchPets, isOnline, syncing, user]);
+  }, [drainPetQueue, drainNotifQueue, fetchNotifications, fetchPets, isOnline, syncing]);
 
   return (
     <ErrorBoundary>
       <LocationProvider>
-      <div className="relative flex h-full min-h-0 flex-1 flex-col">
-        <OfflineBanner />
+        <div className={`relative flex h-full min-h-0 flex-1 flex-col${selectedPet ? " overflow-hidden" : ""}`}>
+          <OfflineBanner />
 
-        <div className="relative flex min-h-0 flex-1 flex-col transition-opacity duration-200 ease-out">
-          {activeTab === "community" ? (
-            <div
-              ref={communityScrollRef}
-              className="bud-tab-fade flex min-h-0 flex-1 flex-col overflow-y-auto pb-[5.25rem]"
-            >
-              {!selectedPet && !showAuth && !showNotifications && (
-                <AppHeader
-                  activeTab={activeTab}
-                  communityScrollRef={communityScrollRef}
-                  onNotifications={() => setShowNotifications(true)}
-                  onSync={syncWithDatabase}
-                  syncing={syncing}
-                />
-              )}
-              <CommunityBoard onSelectPet={openPet} onRequestAuth={requestAuth} />
-            </div>
-          ) : null}
+          <div className="relative flex min-h-0 flex-1 flex-col transition-opacity duration-200 ease-out">
+            {activeTab === "community" ? (
+              <div
+                ref={communityScrollRef}
+                className="bud-tab-fade flex min-h-0 flex-1 flex-col overflow-y-auto pb-[5.25rem]"
+              >
+                {!selectedPet && !overlayOpen && (
+                  <AppHeader
+                    activeTab={activeTab}
+                    communityScrollRef={communityScrollRef}
+                    onNotifications={() => setShowNotifications(true)}
+                    onSync={syncWithDatabase}
+                    syncing={syncing}
+                  />
+                )}
+                <CommunityBoard onSelectPet={openPet} />
+              </div>
+            ) : null}
 
-          {!selectedPet && !showAuth && !showNotifications && activeTab !== "community" ? (
-            <AppHeader
-              activeTab={activeTab}
-              communityScrollRef={communityScrollRef}
-              onNotifications={() => setShowNotifications(true)}
-              onSync={syncWithDatabase}
-              syncing={syncing}
-            />
-          ) : null}
+            {!selectedPet && !overlayOpen && activeTab !== "community" ? (
+              <AppHeader
+                activeTab={activeTab}
+                communityScrollRef={communityScrollRef}
+                onNotifications={() => setShowNotifications(true)}
+                onSync={syncWithDatabase}
+                syncing={syncing}
+              />
+            ) : null}
 
-          {activeTab !== "community" ? (
-            <div className="flex min-h-0 flex-1 flex-col">
-              {activeTab === "map" && (
-                <div className="bud-tab-fade flex min-h-0 flex-1 flex-col pb-[5.25rem]">
-                  <MapView onSelectPet={openPet} />
-                </div>
-              )}
+            {activeTab !== "community" ? (
+              <div className="flex min-h-0 flex-1 flex-col">
+                {activeTab === "map" && (
+                  <div className="bud-tab-fade flex min-h-0 flex-1 flex-col pb-[5.25rem]">
+                    {!selectedPet ? (
+                      <MapView onSelectPet={openPet} />
+                    ) : (
+                      <div className="min-h-0 w-full flex-1 bg-bud-bg" aria-hidden />
+                    )}
+                  </div>
+                )}
 
-              {activeTab === "report" && (
-                <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
-                  <ReportLostPet onRequestAuth={requestAuth} />
-                </div>
-              )}
+                {activeTab === "report" && (
+                  <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
+                    <ReportLostPet />
+                  </div>
+                )}
 
-              {activeTab === "profile" && (
-                <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
-                  <Profile onRequestAuth={requestAuth} onSelectPet={openPet} />
-                </div>
-              )}
-            </div>
-          ) : null}
+                {activeTab === "profile" && (
+                  <div className="bud-tab-fade flex min-h-0 flex-1 overflow-y-auto pb-[5.25rem]">
+                    <Profile onSelectPet={openPet} onEditSetup={() => setShowOnboarding(true)} />
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {!selectedPet && !overlayOpen && (
+            <BottomNav active={activeTab} onChange={onTabChange} />
+          )}
         </div>
 
-        {!selectedPet && !showAuth && !showNotifications && (
-          <BottomNav active={activeTab} onChange={onTabChange} />
-        )}
+        {selectedPet &&
+          portalRootEl &&
+          createPortal(<PetDetail pet={selectedPet} onBack={closePet} />, portalRootEl)}
+        {showNotifications &&
+          portalRootEl &&
+          createPortal(<Notifications onClose={() => setShowNotifications(false)} />, portalRootEl)}
+        {showOnboarding &&
+          portalRootEl &&
+          createPortal(
+            <OnboardingModal
+              onComplete={() => setShowOnboarding(false)}
+              onSkip={() => setShowOnboarding(false)}
+            />,
+            portalRootEl
+          )}
 
-        {selectedPet && <PetDetail pet={selectedPet} onBack={closePet} onRequestAuth={requestAuth} />}
-
-        {showAuth && <AuthScreen onClose={() => setShowAuth(false)} />}
-
-        {showNotifications && <Notifications onClose={() => setShowNotifications(false)} />}
-      </div>
-
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            fontFamily: "'Work Sans', sans-serif",
-            fontSize: "14px",
-            borderRadius: "12px",
-            padding: "12px 16px",
-          },
-        }}
-      />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              fontFamily: "'Work Sans', sans-serif",
+              fontSize: "14px",
+              borderRadius: "12px",
+              padding: "12px 16px",
+            },
+          }}
+        />
       </LocationProvider>
     </ErrorBoundary>
   );

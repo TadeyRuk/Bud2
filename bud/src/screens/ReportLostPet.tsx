@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { GEOLOCATION_OPTIONS, isGeolocationSupported } from "../hooks/useGeolocation";
+import type { GeoPosition } from "../hooks/useGeolocation";
 import { usePetStore } from "../stores/petStore";
 import { showError, showSuccess } from "../lib/api";
 import { getOnboardingProfile } from "../lib/onboardingProfile";
 import type { PetType } from "../types/database";
 
-type ReportLostPetProps = {
-  onRequestAuth?: () => void;
-};
+type GpsCaptureStatus = "idle" | "loading" | "captured" | "denied";
 
 const TOTAL_STEPS = 4;
 
@@ -66,7 +66,7 @@ function ChoiceChip({
   );
 }
 
-export function ReportLostPet(_props: ReportLostPetProps) {
+export function ReportLostPet() {
   const onboardingSnapshot = useMemo(() => getOnboardingProfile(), []);
 
   const [step, setStep] = useState(1);
@@ -79,6 +79,8 @@ export function ReportLostPet(_props: ReportLostPetProps) {
   const [gender, setGender] = useState("Unknown");
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [reportCoords, setReportCoords] = useState<GeoPosition | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<GpsCaptureStatus>("idle");
   const fileRef = useRef<HTMLInputElement>(null);
   const selectedFile = useRef<File | null>(null);
 
@@ -94,6 +96,27 @@ export function ReportLostPet(_props: ReportLostPetProps) {
   useEffect(() => {
     if (petType !== "other") setOtherSpecies("");
   }, [petType]);
+
+  function captureGps() {
+    if (!isGeolocationSupported()) {
+      setGpsStatus("denied");
+      showError("Location is not available in this browser.");
+      return;
+    }
+    setGpsStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setReportCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsStatus("captured");
+      },
+      () => {
+        setReportCoords(null);
+        setGpsStatus("denied");
+        showError("Could not access your location. You can still submit with text only.");
+      },
+      GEOLOCATION_OPTIONS
+    );
+  }
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -144,8 +167,8 @@ export function ReportLostPet(_props: ReportLostPetProps) {
         status: "LOST",
         type: petType,
         location_text: location.trim(),
-        lat: null,
-        lng: null,
+        lat: reportCoords?.lat ?? null,
+        lng: reportCoords?.lng ?? null,
         image_url: null,
         description: traits.trim(),
       },
@@ -161,6 +184,8 @@ export function ReportLostPet(_props: ReportLostPetProps) {
       setStep(1);
       setName("");
       setLocation("");
+      setReportCoords(null);
+      setGpsStatus("idle");
       setTraits("");
       setColor("");
       setGender("Unknown");
@@ -331,6 +356,31 @@ export function ReportLostPet(_props: ReportLostPetProps) {
                 placeholder="Street, landmark, or barangay"
                 className={`${inputWell} mt-2`}
               />
+              <p className="font-body mt-2 text-xs leading-relaxed text-bud-text-muted">
+                Your exact address and GPS point are not shown publicly — only an approximate area on the map.
+              </p>
+              <button
+                type="button"
+                onClick={captureGps}
+                disabled={gpsStatus === "loading"}
+                className="mt-3 w-full rounded-xl border-2 border-bud-accent/35 bg-white/80 py-3 font-body text-sm font-bold text-bud-accent transition-transform active:scale-[0.99] disabled:opacity-50"
+              >
+                {gpsStatus === "loading"
+                  ? "Getting location…"
+                  : gpsStatus === "captured"
+                    ? "Location captured — tap to refresh"
+                    : "Use my location (optional)"}
+              </button>
+              {gpsStatus === "captured" && (
+                <p className="font-body mt-2 text-xs font-semibold text-bud-accent">
+                  GPS saved for approximate map placement.
+                </p>
+              )}
+              {gpsStatus === "denied" && (
+                <p className="font-body mt-2 text-xs text-bud-text-muted">
+                  GPS not set — you can still submit with the text location above.
+                </p>
+              )}
             </div>
 
             <div>
@@ -365,7 +415,11 @@ export function ReportLostPet(_props: ReportLostPetProps) {
               <span className="text-bud-text-muted">Gender:</span> {gender}
             </p>
             <p>
-              <span className="text-bud-text-muted">Last seen:</span> {location || "—"}
+              <span className="text-bud-text-muted">Last seen (private notes):</span> {location || "—"}
+            </p>
+            <p>
+              <span className="text-bud-text-muted">GPS for map:</span>{" "}
+              {gpsStatus === "captured" ? "Captured (approximate on map)" : "Not set"}
             </p>
             <p>
               <span className="text-bud-text-muted">Photo:</span> {preview ? "Attached" : "None"}

@@ -1,9 +1,11 @@
-import { useAuthStore } from "../stores/authStore";
+import { useEffect, useRef } from "react";
 import { usePetStore, type Pet } from "../stores/petStore";
-import { supabase, supabaseConfigured } from "../lib/supabase";
 import { showError, showSuccess } from "../lib/api";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
-import { DEMO_REPORTER_ID } from "../data/pets";
+import { PetLocationLabel } from "../components/PetLocationLabel";
+import { useUserLocation } from "../context/LocationContext";
+import { getPublicLocationLabel } from "../lib/locationPrivacy";
+import { useUiStore } from "../stores/uiStore";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -14,7 +16,6 @@ const PET_IMAGE_PLACEHOLDER =
 type PetDetailProps = {
   pet: Pet;
   onBack: () => void;
-  onRequestAuth: () => void;
 };
 
 async function sharePet(pet: Pet) {
@@ -41,51 +42,18 @@ async function sharePet(pet: Pet) {
   }
 }
 
-export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
-  const user = useAuthStore((s) => s.user);
+export function PetDetail({ pet, onBack }: PetDetailProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const { position } = useUserLocation();
   const updatePetStatus = usePetStore((s) => s.updatePetStatus);
-  const isOwner = user ? pet.reporter_id === user.id : pet.reporter_id === "";
+  const isOwner = pet.reporter_id === "";
 
   const metaLine = [
     [pet.breed, pet.color].filter(Boolean).join(" · ") || "Pet",
-    `#${pet.id.slice(0, 8)}`,
+    getPublicLocationLabel(pet, position, { suffix: false }),
   ].join(" · ");
 
   async function handleContact(type: "owner" | "barangay") {
-    if (!user) {
-      onRequestAuth();
-      return;
-    }
-
-    if (supabaseConfigured) {
-      const { error } = await supabase.from("contacts").insert({
-        pet_id: pet.id,
-        requester_id: user.id,
-        contact_type: type,
-        message: "",
-      });
-
-      if (error) {
-        showError(error);
-        return;
-      }
-
-      if (
-        pet.reporter_id &&
-        pet.reporter_id !== DEMO_REPORTER_ID &&
-        pet.reporter_id !== user.id
-      ) {
-        await supabase.from("notifications").insert({
-          user_id: pet.reporter_id,
-          type: "contact_request" as const,
-          title: `Someone wants to help with ${pet.name}`,
-          body: `A neighbor reached out via ${type === "owner" ? "direct contact" : "barangay desk"}.`,
-          pet_id: pet.id,
-          read: false,
-        });
-      }
-    }
-
     if (type === "barangay") {
       showSuccess("Connecting to barangay desk…");
     } else {
@@ -103,16 +71,61 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   }
 
   const glassFrame =
-    "overflow-hidden rounded-[1.85rem] border border-white/50 bg-white/[0.22] shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04] backdrop-blur-xl backdrop-saturate-150";
+    "overflow-hidden rounded-[1.85rem] border border-white/50 bg-bud-card shadow-[0_24px_64px_-18px_rgba(44,26,14,0.28),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-black/[0.04]";
+
+  // #region agent log
+  useEffect(() => {
+    const el = overlayRef.current;
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    const x = Math.floor(box.left + box.width / 2);
+    const y = Math.floor(box.top + box.height * 0.38);
+    const hit = document.elementFromPoint(x, y);
+    const leafletCount = document.querySelectorAll(".leaflet-container").length;
+    const activeTab = useUiStore.getState().activeTab;
+    const portalHost = typeof document !== "undefined" ? document.getElementById("bud-shell-mount") : null;
+    const payload = {
+      activeTab,
+      leafletCount,
+      hitIsLeaflet: !!(hit && (hit as Element).closest?.(".leaflet-container")),
+      hitTag: hit?.nodeName ?? null,
+      petAnchoredUnderShellMount: !!(portalHost && el.parentElement?.id === "bud-shell-mount"),
+    };
+    try {
+      localStorage.setItem(
+        "debug-60513c",
+        JSON.stringify({ ...payload, ts: Date.now(), petIdPrefix: pet.id.slice(0, 8) })
+      );
+    } catch {
+      /* ignore quota */
+    }
+    fetch("http://127.0.0.1:7574/ingest/94092400-477a-4a06-a267-106d04813b25", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "60513c" },
+      body: JSON.stringify({
+        sessionId: "60513c",
+        runId: "portal-mount",
+        hypothesisId: "H13",
+        location: "PetDetail.tsx:probe",
+        message: "pet detail stack probe",
+        data: payload,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }, [pet.id]);
+  // #endregion
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col bg-bud-bg/55 backdrop-blur-[3px] transition-opacity duration-200">
+    <div
+      ref={overlayRef}
+      className="absolute inset-0 z-[5000] isolate flex flex-col bg-bud-bg transition-opacity duration-200"
+    >
       <header className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between p-3 pt-4">
         <button
           type="button"
           onClick={onBack}
           aria-label="Go back"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/40 text-bud-text shadow-sm backdrop-blur-md transition-transform active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/60 text-bud-text shadow-sm transition-transform active:scale-95"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -122,7 +135,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
           type="button"
           onClick={() => sharePet(pet)}
           aria-label="Share"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/40 text-bud-text shadow-sm backdrop-blur-md transition-transform active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/60 text-bud-text shadow-sm transition-transform active:scale-95"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.935-2.186 2.25 2.25 0 00-3.935 2.186z" />
@@ -130,7 +143,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-8 pt-14">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-bud-bg px-4 pb-8 pt-14">
         <article className={`mx-auto w-full max-w-lg ${glassFrame}`}>
           <div className="relative mx-auto aspect-[3/4] max-h-[min(52vh,400px)] w-full overflow-hidden bg-gradient-to-br from-bud-surface-well to-bud-surface-low">
             <img
@@ -165,7 +178,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                   {pet.name}
                 </h1>
                 {pet.status === "REUNITED" && (
-                  <span className="shrink-0 rounded-full bg-white/90 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-wide text-green-700 shadow-sm backdrop-blur-sm">
+                  <span className="shrink-0 rounded-full bg-white/95 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-wide text-green-700 shadow-sm">
                     Reunited
                   </span>
                 )}
@@ -193,7 +206,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
             </div>
           </div>
 
-          <div className="relative overflow-hidden border-t border-white/45 bg-gradient-to-b from-white/[0.42] to-white/[0.28] px-4 py-4 backdrop-blur-2xl">
+          <div className="relative overflow-hidden border-t border-white/45 bg-bud-card px-4 py-4">
             <div
               className="pointer-events-none absolute inset-0 overflow-hidden rounded-b-[1.85rem]"
               aria-hidden
@@ -206,7 +219,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
 
             <div className="relative z-[1] flex items-start justify-between gap-4 rounded-xl px-1 py-1">
               <div className="flex min-w-0 flex-1 gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-white/55 shadow-sm backdrop-blur-md">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-bud-surface-well shadow-sm">
                   <svg
                     className="h-5 w-5 text-bud-accent"
                     fill="none"
@@ -227,9 +240,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                   <p className="font-body text-[10px] font-bold uppercase tracking-[0.16em] text-bud-text/75">
                     Last seen
                   </p>
-                  <p className="font-body text-sm font-semibold leading-snug text-bud-text line-clamp-3">
-                    {pet.location_text || "Location shared"}
-                  </p>
+                  <PetLocationLabel pet={pet} variant="lastSeen" showMapHint />
                 </div>
               </div>
               <div className="shrink-0 pt-1 text-right">
@@ -249,19 +260,19 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
 
             <div className="relative z-[1]">
             <dl className="mt-4 grid grid-cols-2 gap-2 font-body text-sm">
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Breed</dt>
                 <dd className="mt-1 font-medium text-bud-text">{pet.breed ?? "—"}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Color / collar</dt>
                 <dd className="mt-1 font-medium text-bud-text">{pet.color}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Gender</dt>
                 <dd className="mt-1 font-medium text-bud-text">{pet.gender}</dd>
               </div>
-              <div className="rounded-xl border border-white/40 bg-white/35 p-3 backdrop-blur-md">
+              <div className="rounded-xl border border-white/55 bg-white/90 p-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-bud-text-muted">Fur</dt>
                 <dd className="mt-1 font-medium text-bud-text">{pet.fur_color}</dd>
               </div>
@@ -285,7 +296,7 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                   <button
                     type="button"
                     onClick={() => handleContact("barangay")}
-                    className="w-full rounded-[1.12rem] border-2 border-bud-accent bg-white/25 py-3.5 font-body text-sm font-bold uppercase tracking-widest text-bud-accent backdrop-blur-sm transition-transform active:scale-[0.98]"
+                    className="w-full rounded-[1.12rem] border-2 border-bud-accent bg-white py-3.5 font-body text-sm font-bold uppercase tracking-widest text-bud-accent transition-transform active:scale-[0.98]"
                   >
                     Contact Barangay
                   </button>

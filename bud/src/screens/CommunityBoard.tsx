@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePetStore, type Pet } from "../stores/petStore";
-import { supabase, supabaseConfigured } from "../lib/supabase";
-import { useAuthStore } from "../stores/authStore";
-import { showError, showSuccess } from "../lib/api";
+import { showSuccess } from "../lib/api";
 import { GlassPetStatusChip } from "../components/GlassPetStatusChip";
-import { DEMO_REPORTER_ID } from "../data/pets";
+import { PetLocationLabel } from "../components/PetLocationLabel";
 import { useUserLocation } from "../context/LocationContext";
-import { formatDistanceKm, petDistanceKm, sortPetsByDistance } from "../lib/geo";
+import { sortPetsByDistance } from "../lib/geo";
+import { getPublicLocationLabel } from "../lib/locationPrivacy";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -16,40 +15,46 @@ const PET_IMAGE_PLACEHOLDER =
 
 type CommunityBoardProps = {
   onSelectPet: (pet: Pet) => void;
-  onRequestAuth: () => void;
 };
 
-export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardProps) {
+const COMMUNITY_NEARBY_RADIUS_KM = 120;
+
+export function CommunityBoard({ onSelectPet }: CommunityBoardProps) {
   const [query, setQuery] = useState("");
   const pets = usePetStore((s) => s.pets);
+  const nearbyPets = usePetStore((s) => s.nearbyPets);
+  const nearbyLoading = usePetStore((s) => s.nearbyLoading);
   const loading = usePetStore((s) => s.loading);
   const hasMore = usePetStore((s) => s.hasMore);
   const fetchPets = usePetStore((s) => s.fetchPets);
-  const searchPets = usePetStore((s) => s.searchPets);
-  const user = useAuthStore((s) => s.user);
-  const { position } = useUserLocation();
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const fetchNearbyPets = usePetStore((s) => s.fetchNearbyPets);
+  const clearNearbyPets = usePetStore((s) => s.clearNearbyPets);
+  const { position, status } = useUserLocation();
 
   useEffect(() => {
     fetchPets(true);
   }, [fetchPets]);
 
-  const handleSearch = useCallback(
-    (value: string) => {
-      setQuery(value);
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        searchPets(value);
-      }, 300);
-    },
-    [searchPets]
-  );
+  useEffect(() => {
+    if (status === "ready" && position) {
+      void fetchNearbyPets(position.lat, position.lng, COMMUNITY_NEARBY_RADIUS_KM);
+    } else if (status === "error") {
+      clearNearbyPets();
+    }
+  }, [status, position, fetchNearbyPets, clearNearbyPets]);
+
+  const handleSearch = useCallback((value: string) => {
+    setQuery(value);
+  }, []);
+
+  const basePets = nearbyPets ?? pets;
 
   const loadMore = useCallback(() => {
+    if (nearbyPets != null) return;
     if (!loading && hasMore) {
       fetchPets(false);
     }
-  }, [loading, hasMore, fetchPets]);
+  }, [nearbyPets, loading, hasMore, fetchPets]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -66,45 +71,8 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
   }, [loadMore]);
 
   async function handleHaveInfo(pet: Pet) {
-    if (!user) {
-      onRequestAuth();
-      return;
-    }
-
     const message = window.prompt(`Share info about ${pet.name}:`);
     if (!message) return;
-
-    if (supabaseConfigured) {
-      const { error } = await supabase.from("sightings").insert({
-        pet_id: pet.id,
-        reporter_id: user.id,
-        message,
-        location_text: "",
-        lat: null,
-        lng: null,
-        photo_url: null,
-      });
-
-      if (error) {
-        showError(error);
-        return;
-      }
-
-      if (
-        pet.reporter_id &&
-        pet.reporter_id !== DEMO_REPORTER_ID &&
-        pet.reporter_id !== user.id
-      ) {
-        await supabase.from("notifications").insert({
-          user_id: pet.reporter_id,
-          type: "sighting" as const,
-          title: `New sighting for ${pet.name}`,
-          body: message.slice(0, 200),
-          pet_id: pet.id,
-          read: false,
-        });
-      }
-    }
 
     showSuccess(`Thanks — your info about ${pet.name} was shared with the community.`);
   }
@@ -112,15 +80,17 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const matched = q
-      ? pets.filter(
-          (p) =>
+      ? basePets.filter((p) => {
+          const desc = (p.description ?? "").toLowerCase();
+          return (
             p.name.toLowerCase().includes(q) ||
-            p.location_text.toLowerCase().includes(q) ||
-            (p.breed?.toLowerCase().includes(q) ?? false)
-        )
-      : pets;
+            (p.breed?.toLowerCase().includes(q) ?? false) ||
+            desc.includes(q)
+          );
+        })
+      : basePets;
     return sortPetsByDistance(matched, position);
-  }, [pets, query, position]);
+  }, [basePets, query, position]);
 
   return (
     <div className="relative min-h-full">
@@ -135,6 +105,12 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
           <p className="font-body mt-2 max-w-[280px] text-sm leading-relaxed text-bud-text-muted">
             Recent alerts and sightings near you.
           </p>
+          {(status === "loading" ||
+            (nearbyLoading && position != null && nearbyPets === null && status === "ready")) && (
+            <p className="font-body mt-1.5 max-w-[280px] text-xs leading-snug text-bud-text-muted">
+              Finding your area…
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 rounded-xl border border-white/65 bg-white/[0.58] px-3 py-2.5 shadow-[0_6px_28px_rgba(44,26,14,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl ring-1 ring-black/[0.05]">
@@ -156,19 +132,22 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
             type="search"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search pets, area, breed…"
+            placeholder="Search pets, breed, notes…"
             className="min-w-0 flex-1 bg-transparent font-body text-sm font-medium text-bud-text outline-none placeholder:text-bud-text-muted"
             aria-label="Search pets"
           />
         </div>
 
-        {loading && filtered.length === 0 && (
+        {(loading || (nearbyLoading && nearbyPets === null && status === "ready")) &&
+          filtered.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-bud-primary border-t-transparent" />
           </div>
         )}
 
-        {!loading && filtered.length === 0 && (
+        {!loading &&
+          !(nearbyLoading && nearbyPets === null && status === "ready") &&
+          filtered.length === 0 && (
           <div className="px-6 py-12 text-center">
             <p className="font-headline text-lg font-bold text-bud-text">No pets found</p>
             <p className="font-body mt-2 text-sm text-bud-text-muted">
@@ -177,7 +156,16 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
             {!query && (
               <button
                 type="button"
-                onClick={() => fetchPets(true)}
+                onClick={() => {
+                  fetchPets(true);
+                  if (status === "ready" && position) {
+                    void fetchNearbyPets(
+                      position.lat,
+                      position.lng,
+                      COMMUNITY_NEARBY_RADIUS_KM
+                    );
+                  }
+                }}
                 className="mt-4 font-body text-sm font-semibold text-bud-accent underline-offset-2 hover:underline"
               >
                 Retry
@@ -188,12 +176,10 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
 
         <div className="space-y-6 pt-1">
           {filtered.map((pet) => {
-            const distanceKm = position ? petDistanceKm(pet, position) : null;
-            const distanceLabel =
-              distanceKm != null ? formatDistanceKm(distanceKm) : null;
+            const areaLabel = getPublicLocationLabel(pet, position, { suffix: false });
             const metaLine = [
               [pet.breed, pet.color].filter(Boolean).join(" · ") || "Pet",
-              distanceLabel ?? `#${pet.id.slice(0, 8)}`,
+              areaLabel,
             ].join(" · ");
 
             return (
@@ -278,14 +264,7 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
                           <p className="font-body text-[10px] font-bold uppercase tracking-[0.16em] text-bud-text/70">
                             Last seen
                           </p>
-                          <p className="font-body text-sm font-semibold leading-snug text-[#1c1c19] line-clamp-2">
-                            {pet.location_text || "Location shared"}
-                          </p>
-                          {distanceLabel && (
-                            <p className="font-body mt-1 text-xs font-semibold text-bud-accent">
-                              {distanceLabel} away
-                            </p>
-                          )}
+                          <PetLocationLabel pet={pet} variant="lastSeen" className="text-[#1c1c19]" />
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="font-headline text-lg font-bold tabular-nums leading-none text-bud-primary">
@@ -322,7 +301,7 @@ export function CommunityBoard({ onSelectPet, onRequestAuth }: CommunityBoardPro
 
         <div ref={sentinelRef} className="h-4" />
 
-        {loading && filtered.length > 0 && (
+        {loading && filtered.length > 0 && nearbyPets === null && (
           <div className="flex justify-center py-4">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-bud-primary border-t-transparent" />
           </div>

@@ -6,6 +6,8 @@ import { normalizeError } from "../lib/api";
 import { enqueue, dequeue, peekAll, getBlob } from "../lib/offlineQueue";
 import { uploadPetPhoto, resizeImage } from "../lib/storage";
 import { DEMO_PETS, DEMO_REPORTER_ID } from "../data/pets";
+import { agentDebugLog } from "../lib/agentDebugLog";
+import { boundingBoxKm, haversineDistanceKm } from "../lib/geo";
 
 export type Pet = DbPet & {
   syncing?: boolean;
@@ -18,7 +20,11 @@ type PetState = {
   loading: boolean;
   error: string | null;
   hasMore: boolean;
+  nearbyPets: Pet[] | null;
+  nearbyLoading: boolean;
   fetchPets: (reset?: boolean) => Promise<void>;
+  fetchNearbyPets: (lat: number, lng: number, radiusKm: number) => Promise<void>;
+  clearNearbyPets: () => void;
   searchPets: (query: string) => Promise<void>;
   addPet: (pet: Omit<DbPet, "id" | "created_at" | "updated_at" | "reporter_id">, photo?: File) => Promise<{ error: string | null }>;
   updatePetStatus: (petId: string, status: PetStatus) => Promise<{ error: string | null }>;
@@ -69,6 +75,62 @@ export const usePetStore = create<PetState>()(
       loading: false,
       error: null,
       hasMore: true,
+      nearbyPets: null,
+      nearbyLoading: false,
+
+      clearNearbyPets: () => set({ nearbyPets: null, nearbyLoading: false }),
+
+      fetchNearbyPets: async (lat, lng, radiusKm) => {
+        const center = { lat, lng };
+
+        if (!supabaseConfigured) {
+          const demos = mapDemoPets();
+          const inRadius = demos.filter((p) => {
+            if (p.lat == null || p.lng == null) return false;
+            return haversineDistanceKm(center, { lat: p.lat, lng: p.lng }) <= radiusKm;
+          });
+          set({
+            nearbyPets: inRadius.length > 0 ? inRadius : null,
+            nearbyLoading: false,
+          });
+          return;
+        }
+
+        set({ nearbyLoading: true, error: null });
+        const box = boundingBoxKm(center, radiusKm);
+
+        const { data, error } = await supabase
+          .from("pets")
+          .select("*")
+          .gte("lat", box.minLat)
+          .lte("lat", box.maxLat)
+          .gte("lng", box.minLng)
+          .lte("lng", box.maxLng)
+          .not("lat", "is", null)
+          .not("lng", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(PAGE_SIZE);
+
+        if (error) {
+          set({
+            nearbyLoading: false,
+            error: normalizeError(error),
+            nearbyPets: null,
+          });
+          return;
+        }
+
+        const fetched = (data as DbPet[]).map((d) => ({ ...d } as Pet));
+        const trimmed = fetched.filter((p) => {
+          if (p.lat == null || p.lng == null) return false;
+          return haversineDistanceKm(center, { lat: p.lat, lng: p.lng }) <= radiusKm;
+        });
+
+        set({
+          nearbyLoading: false,
+          nearbyPets: mergeDemoPets(trimmed),
+        });
+      },
 
       fetchPets: async (reset = false) => {
         if (!supabaseConfigured) {
@@ -120,12 +182,14 @@ export const usePetStore = create<PetState>()(
           const demos = mapDemoPets();
           const lq = q.toLowerCase();
           set({
-            pets: demos.filter(
-              (p) =>
+            pets: demos.filter((p) => {
+              const desc = (p.description ?? "").toLowerCase();
+              return (
                 p.name.toLowerCase().includes(lq) ||
-                p.location_text.toLowerCase().includes(lq) ||
-                (p.breed?.toLowerCase().includes(lq) ?? false)
-            ),
+                (p.breed?.toLowerCase().includes(lq) ?? false) ||
+                desc.includes(lq)
+              );
+            }),
           });
           return;
         }
@@ -135,7 +199,7 @@ export const usePetStore = create<PetState>()(
         const { data, error } = await supabase
           .from("pets")
           .select("*")
-          .or(`name.ilike.${pattern},location_text.ilike.${pattern},breed.ilike.${pattern}`)
+          .or(`name.ilike.${pattern},breed.ilike.${pattern},description.ilike.${pattern}`)
           .order("created_at", { ascending: false })
           .limit(30);
 
@@ -143,29 +207,42 @@ export const usePetStore = create<PetState>()(
           const lq = q.toLowerCase();
           set({
             loading: false,
-            pets: get().pets.filter(
-              (p) =>
+            pets: get().pets.filter((p) => {
+              const desc = (p.description ?? "").toLowerCase();
+              return (
                 p.name.toLowerCase().includes(lq) ||
-                p.location_text.toLowerCase().includes(lq) ||
-                (p.breed?.toLowerCase().includes(lq) ?? false)
-            ),
+                (p.breed?.toLowerCase().includes(lq) ?? false) ||
+                desc.includes(lq)
+              );
+            }),
           });
           return;
         }
 
         const fetched = (data as DbPet[]).map((d) => ({ ...d } as Pet));
         const lq = q.toLowerCase();
-        const filtered = mergeDemoPets(fetched).filter(
-          (p) =>
+        const filtered = mergeDemoPets(fetched).filter((p) => {
+          const desc = (p.description ?? "").toLowerCase();
+          return (
             p.name.toLowerCase().includes(lq) ||
-            p.location_text.toLowerCase().includes(lq) ||
-            (p.breed?.toLowerCase().includes(lq) ?? false)
-        );
+            (p.breed?.toLowerCase().includes(lq) ?? false) ||
+            desc.includes(lq)
+          );
+        });
         set({ pets: filtered, loading: false, hasMore: false });
       },
 
       addPet: async (petData, photo) => {
         const tempId = crypto.randomUUID();
+        // #region agent log
+        agentDebugLog({
+          runId: "post-fix",
+          hypothesisId: "H4",
+          location: "petStore.ts:addPet:entry",
+          message: "addPet started",
+          data: { supabaseConfigured, hasPhoto: Boolean(photo), keys: Object.keys(petData) },
+        });
+        // #endregion
         const tempPet: Pet = {
           id: tempId,
           reporter_id: "",
@@ -192,17 +269,35 @@ export const usePetStore = create<PetState>()(
             imageUrl = await uploadPetPhoto(resized, tempId);
           }
 
-          const { data, error } = await supabase
+          const { data, error: insertError } = await supabase
             .from("pets")
             .insert({
               ...petData,
               image_url: imageUrl,
-              reporter_id: (await supabase.auth.getUser()).data.user?.id ?? "",
+              reporter_id: "",
             })
             .select()
             .single();
 
-          if (error) throw error;
+          // #region agent log
+          agentDebugLog({
+            runId: "post-fix",
+            hypothesisId: "H1",
+            location: "petStore.ts:addPet:afterInsert",
+            message: "pets insert result",
+            data: {
+              insertError: insertError
+                ? {
+                    code: insertError.code ?? null,
+                    message: insertError.message?.slice(0, 300) ?? null,
+                    details: String(insertError.details ?? "").slice(0, 200),
+                  }
+                : null,
+            },
+          });
+          // #endregion
+
+          if (insertError) throw insertError;
 
           set((s) => ({
             pets: s.pets.map((p) =>
@@ -212,6 +307,21 @@ export const usePetStore = create<PetState>()(
 
           return { error: null };
         } catch (err) {
+          // #region agent log
+          agentDebugLog({
+            runId: "post-fix",
+            hypothesisId: "H2",
+            location: "petStore.ts:addPet:catch",
+            message: "addPet threw",
+            data: {
+              code: typeof err === "object" && err !== null ? String((err as { code?: unknown }).code ?? "") : "",
+              message:
+                typeof err === "object" && err !== null && "message" in err
+                  ? String((err as { message?: unknown }).message).slice(0, 400)
+                  : String(err).slice(0, 400),
+            },
+          });
+          // #endregion
           if (photo) {
             await enqueue(
               { table: "pets", operation: "insert", payload: petData as Record<string, unknown> },
@@ -323,11 +433,10 @@ export const usePetStore = create<PetState>()(
                 }
               }
 
-              const user = (await supabase.auth.getUser()).data.user;
               await supabase.from("pets").insert({
                 ...item.payload,
                 image_url: imageUrl ?? (item.payload.image_url as string | null),
-                reporter_id: user?.id ?? "",
+                reporter_id: "",
               });
             } else if (item.operation === "update") {
               const { id, ...rest } = item.payload;

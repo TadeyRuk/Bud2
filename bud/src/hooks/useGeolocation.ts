@@ -10,8 +10,14 @@ type GeolocationState = {
   error: GeolocationPositionError | null;
 };
 
+export const GEOLOCATION_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  timeout: 10000,
+  maximumAge: 60000,
+};
+
 // Requires a secure context (https:// or localhost).
-function isGeolocationSupported(): boolean {
+export function isGeolocationSupported(): boolean {
   return typeof navigator !== "undefined" && "geolocation" in navigator;
 }
 
@@ -41,7 +47,7 @@ export function useGeolocation(): GeolocationState {
       (error) => {
         setState({ position: null, status: "error", error });
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      GEOLOCATION_OPTIONS
     );
   }, []);
 

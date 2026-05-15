@@ -14,7 +14,7 @@ export function Notifications({ onClose }: NotificationsProps) {
   }, [fetchNotifications]);
 
   return (
-    <div className="absolute inset-0 z-[55] bg-bud-bg flex flex-col">
+    <div className="absolute inset-0 z-[7200] bg-bud-bg flex flex-col">
       <header className="shrink-0 flex items-center justify-between px-4 pt-4 pb-3 border-b border-bud-surface-low">
         <div className="flex items-center gap-3">
           <button
