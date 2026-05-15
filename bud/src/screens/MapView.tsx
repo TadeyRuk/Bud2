@@ -607,6 +607,7 @@ export function MapView({ onSelectPet }: MapViewProps) {
       reportedWithin: filterSnapshot.reportedWithin,
       hasPhoto: filterSnapshot.hasPhoto,
       verifiedOnly: filterSnapshot.verifiedOnly,
+      stillMissingOnly: filterSnapshot.stillMissingOnly,
     };
     return applyFilters(base, f, { userLatLng: effectiveUserLl });
   }, [pets, mapSearch, filterSnapshot, effectiveUserLl]);

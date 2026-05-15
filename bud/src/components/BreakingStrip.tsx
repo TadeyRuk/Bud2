@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useSightingStore } from "../stores/sightingStore";
 import { usePetStore } from "../stores/petStore";
 import type { Pet } from "../stores/petStore";
 
@@ -7,36 +6,31 @@ type BreakingStripProps = {
   onSelectPet: (pet: Pet) => void;
 };
 
+const STRIP_LIMIT = 8;
+const WINDOW_MS = 24 * 3600_000;
+
 export function BreakingStrip({ onSelectPet }: BreakingStripProps) {
-  const sightings = useSightingStore((s) => s.sightings);
   const pets = usePetStore((s) => s.pets);
 
   const tiles = useMemo(() => {
-    const cutoff = Date.now() - 24 * 3600_000;
-    const recent = [...sightings]
-      .filter((x) => new Date(x.createdAt).getTime() >= cutoff)
-      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-      .slice(0, 5);
-    return recent
-      .map((s) => {
-        const pet = pets.find((p) => p.id === s.petId);
-        if (!pet) return null;
-        return { s, pet };
-      })
-      .filter(Boolean) as { s: (typeof sightings)[0]; pet: Pet }[];
-  }, [sightings, pets]);
+    const cutoff = Date.now() - WINDOW_MS;
+    return [...pets]
+      .filter((p) => p.status === "LOST" && new Date(p.created_at).getTime() >= cutoff)
+      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+      .slice(0, STRIP_LIMIT);
+  }, [pets]);
 
   if (tiles.length === 0) return null;
 
   return (
     <div className="pl-1">
-      <p className="font-body text-[10px] font-bold uppercase tracking-[0.18em] text-bud-accent">Breaking · last 24h</p>
+      <p className="font-body text-[10px] font-bold uppercase tracking-[0.18em] text-bud-accent">Breaking · lost in last 24h</p>
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tiles.map(({ s, pet }, i) => {
-          const ago = formatShortAgo(s.createdAt);
+        {tiles.map((pet, i) => {
+          const ago = formatShortAgo(pet.created_at);
           return (
             <button
-              key={s.id}
+              key={pet.id}
               type="button"
               onClick={() => onSelectPet(pet)}
               className={`relative h-16 w-[100px] shrink-0 overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-sm ${

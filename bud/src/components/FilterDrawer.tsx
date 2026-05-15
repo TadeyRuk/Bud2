@@ -44,6 +44,7 @@ export function FilterDrawer() {
   const reportedWithin = useFilterStore((s) => s.reportedWithin);
   const hasPhoto = useFilterStore((s) => s.hasPhoto);
   const verifiedOnly = useFilterStore((s) => s.verifiedOnly);
+  const stillMissingOnly = useFilterStore((s) => s.stillMissingOnly);
   const setKey = useFilterStore((s) => s.setKey);
   const toggleInArray = useFilterStore((s) => s.toggleInArray);
   const reset = useFilterStore((s) => s.reset);
@@ -57,8 +58,9 @@ export function FilterDrawer() {
       reportedWithin,
       hasPhoto,
       verifiedOnly,
+      stillMissingOnly,
     }),
-    [species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly]
+    [species, statuses, maxDistanceKm, reportedWithin, hasPhoto, verifiedOnly, stillMissingOnly]
   );
 
   const filteredLen = useMemo(() => {
@@ -141,6 +143,21 @@ export function FilterDrawer() {
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              aria-pressed={stillMissingOnly}
+              onClick={() => setKey("stillMissingOnly", !stillMissingOnly)}
+              className={`mt-3 w-full rounded-2xl border px-3 py-2.5 text-left font-body text-xs font-bold transition-colors ${
+                stillMissingOnly
+                  ? "border-bud-primary bg-bud-primary/10 text-bud-primary"
+                  : "border-black/10 bg-white/80 text-bud-text"
+              }`}
+            >
+              Still missing only — hide found and reunited
+            </button>
+            <p className="mt-1.5 font-body text-[11px] leading-snug text-bud-text-muted">
+              Use this when you only want pets that have not been located yet (LOST).
+            </p>
           </section>
 
           <section className="rounded-2xl border border-black/6 bg-white/70 p-4">

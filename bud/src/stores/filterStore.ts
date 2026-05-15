@@ -9,6 +9,8 @@ export type FilterStateShape = {
   reportedWithin: "24h" | "7d" | "30d" | "any";
   hasPhoto: boolean;
   verifiedOnly: boolean;
+  /** Only listings still missing (LOST). Hides FOUND / REUNITED. */
+  stillMissingOnly: boolean;
 };
 
 export const defaultFilters: FilterStateShape = {
@@ -18,6 +20,7 @@ export const defaultFilters: FilterStateShape = {
   reportedWithin: "any",
   hasPhoto: false,
   verifiedOnly: false,
+  stillMissingOnly: false,
 };
 
 type FilterStore = FilterStateShape & {
@@ -53,7 +56,8 @@ export const useFilterStore = create<FilterStore>()(
           s.maxDistanceKm > 0 ||
           s.reportedWithin !== "any" ||
           s.hasPhoto ||
-          s.verifiedOnly
+          s.verifiedOnly ||
+          s.stillMissingOnly
         );
       },
 
@@ -66,9 +70,10 @@ export const useFilterStore = create<FilterStore>()(
         if (s.reportedWithin !== "any") n += 1;
         if (s.hasPhoto) n += 1;
         if (s.verifiedOnly) n += 1;
+        if (s.stillMissingOnly) n += 1;
         return n;
       },
     }),
-    { name: "bud:filters:v1" }
+    { name: "bud:filters:v2" }
   )
 );
