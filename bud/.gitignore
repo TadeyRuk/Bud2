@@ -1,6 +1,8 @@
 node_modules
 dist
 *.local
-.env
+.env.local
 .env.*
 !.env.example
+demo-outline-export.html
+demo-hooks-export.html

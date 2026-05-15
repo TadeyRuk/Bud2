@@ -24,7 +24,7 @@
       --bubble-1: #F5E6D3;
       --bubble-2: #D4EAD8;
       --bubble-3: #FAD4D4;
-      --app-url: https://bud2-pink.vercel.app/;
+      --app-url: https://bud-six.vercel.app/;
     }
 
     html { scroll-behavior: smooth; }
@@ -378,6 +378,7 @@
       opacity: 0;
       transform: translateY(24px) scale(0.94);
       transition: opacity 1s ease, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      text-decoration: none;
     }
 
     .phone-hero.entered {
@@ -390,6 +391,23 @@
     }
 
     .phone-hero.upright { animation: none; }
+
+    .phone-live-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: var(--bg);
+    }
+
+    .phone-live-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: var(--bg);
+    }
+
 
     .phone-status {
       height: 28px;
@@ -1053,17 +1071,36 @@
     .btn-cta:hover { transform: scale(1.04); box-shadow: 0 16px 56px rgba(0, 0, 0, 0.3); }
 
     .qr-box {
-      width: 120px;
-      height: 120px;
+      width: 196px;
+      height: 196px;
       margin: 28px auto 0;
-      border: 2px dashed rgba(255, 255, 255, 0.35);
-      border-radius: 16px;
+      border: none;
+      border-radius: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.65);
-      background: rgba(255, 255, 255, 0.08);
+      background: transparent;
+      padding: 0;
+      text-decoration: none;
+      transition: transform 200ms ease, filter 200ms ease;
+    }
+
+    .qr-box:hover {
+      transform: translateY(-2px) scale(1.015);
+      filter: brightness(1.03);
+    }
+
+    .qr-box img {
+      width: 196px;
+      height: 196px;
+      border-radius: 22px;
+      background: #fff;
+      object-fit: cover;
+      display: block;
+      box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.92),
+        0 0 0 12px rgba(139, 58, 21, 0.2),
+        0 22px 56px rgba(139, 58, 21, 0.5);
     }
 
     /* Footer — Riley-style columns */
@@ -1239,13 +1276,13 @@
   <div class="content-wrap">
     <header class="navbar" id="navbar">
       <div class="navbar-inner">
-        <a href="#" class="logo-lockup" aria-label="Bud home">
+        <a href="https://bud-six.vercel.app/" class="logo-lockup" aria-label="Open Bud app" target="_blank" rel="noopener noreferrer" data-app-link>
           <svg class="logo-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2c-1.5 0-2.8.4-3.9 1.1A4.5 4.5 0 005 3.5C3.5 3.5 2 5 2 7v1c0 3.5 3 7 4 8s2.5 2 6 2 5-1 6-2 4-4.5 4-8V7c0-2-1.5-3.5-3-3.5-.6 0-1.2.2-1.7.6A6.3 6.3 0 0012 2zm-1 5.5c.8 0 1.5.7 1.5 1.5S11.8 10.5 11 10.5 9.5 9.8 9.5 9s.7-1.5 1.5-1.5zm3 0c.8 0 1.5.7 1.5 1.5S15.8 10.5 15 10.5 13.5 9.8 13.5 9s.7-1.5 1.5-1.5z"/>
           </svg>
           <span class="logo-word">Bud</span>
         </a>
-        <a href="https://bud2-pink.vercel.app/" class="btn btn-nav">Try the App</a>
+        <a href="https://bud-six.vercel.app/" class="btn btn-nav" target="_blank" rel="noopener noreferrer" data-app-link>Try the App</a>
       </div>
     </header>
 
@@ -1257,7 +1294,7 @@
           <h1 class="typewriter-headline serif" id="typewriter" aria-live="polite"></h1>
           <p class="hero-sub" id="hero-sub">Bud connects pet owners, volunteers, and barangay staff to find lost pets faster — together.</p>
           <div class="hero-actions" id="hero-actions">
-            <a href="https://bud2-pink.vercel.app/" class="btn btn-primary-lg">Try Bud Free →</a>
+            <a href="https://bud-six.vercel.app/" class="btn btn-primary-lg" target="_blank" rel="noopener noreferrer" data-app-link>Try Bud Free →</a>
             <a href="#features" class="btn btn-outline-lg">See How It Works</a>
           </div>
           <div class="trust-row" id="trust-row">
@@ -1291,70 +1328,14 @@
             <p class="fc-time">Just now</p>
           </div>
 
-          <div class="phone-hero" id="phone-hero" data-depth="1" role="img" aria-label="Bud community board preview">
-            <div class="phone-status">
-              <span class="time">9:41</span>
-              <span class="signal">●●●</span>
-            </div>
-            <div class="phone-app-header">
-              <span class="brand">🐾 Bud</span>
-              <span style="font-size:18px;color:var(--text-muted)">&#128276;</span>
-            </div>
-            <div class="phone-feed">
-              <article class="feed-card">
-                <div class="feed-thumb dog">🐕</div>
-                <div class="feed-body">
-                  <div class="feed-top">
-                    <span class="feed-name">Max</span>
-                    <span class="status-pill lost">LOST</span>
-                  </div>
-                  <p class="feed-meta">Golden Retriever · Male</p>
-                  <p class="feed-loc">📍 Quezon City</p>
-                  <p class="feed-time">2 hours ago</p>
-                </div>
-              </article>
-              <article class="feed-card">
-                <div class="feed-thumb cat">🐈</div>
-                <div class="feed-body">
-                  <div class="feed-top">
-                    <span class="feed-name">Unknown Cat</span>
-                    <span class="status-pill found">FOUND</span>
-                  </div>
-                  <p class="feed-meta">Domestic Shorthair · Unknown</p>
-                  <p class="feed-loc">📍 Marikina City · 5h ago</p>
-                </div>
-              </article>
-              <article class="feed-card">
-                <div class="feed-thumb bird">🦜</div>
-                <div class="feed-body">
-                  <div class="feed-top">
-                    <span class="feed-name">Kiko</span>
-                    <span class="status-pill lost">LOST</span>
-                  </div>
-                  <p class="feed-meta">Green Parrot · Male</p>
-                  <p class="feed-loc">📍 BGC, Taguig · 1d ago</p>
-                </div>
-              </article>
-            </div>
-            <nav class="phone-bottom-nav" aria-hidden="true">
-              <div class="nav-slot active">
-                <span class="icon">👥</span>
-                <span>Community</span>
-              </div>
-              <div class="nav-slot">
-                <span class="icon">🗺️</span>
-                <span>Map</span>
-              </div>
-              <div class="nav-slot report-slot">
-                <span class="nav-fab">+</span>
-                <span style="margin-top:14px">Report</span>
-              </div>
-              <div class="nav-slot">
-                <span class="icon">👤</span>
-                <span>Profile</span>
-              </div>
-            </nav>
-          </div>
+          <a class="phone-hero" id="phone-hero" data-depth="1" href="https://bud-six.vercel.app/community" target="_blank" rel="noopener noreferrer" data-app-link-community aria-label="Open Bud Community Board">
+            <img
+              class="phone-live-image"
+              src="./Community%20board%20screenshot.png"
+              alt="Bud Community Board screenshot"
+              loading="lazy"
+            />
+          </a>
           </div>
         </div>
       </div>
@@ -1511,8 +1492,10 @@
             <div class="cta-stat"><strong>24/7</strong><span>Live map</span></div>
             <div class="cta-stat"><strong>Free</strong><span>Always</span></div>
           </div>
-          <a href="https://bud2-pink.vercel.app/" class="btn btn-cta">Try Bud Now →</a>
-          <div class="qr-box" aria-label="QR code placeholder">Scan to try</div>
+          <a href="https://bud-six.vercel.app/" class="btn btn-cta">Try Bud Now →</a>
+          <a class="qr-box" href="https://bud-six.vercel.app/" target="_blank" rel="noopener noreferrer" data-app-link aria-label="Scan to try Bud">
+            <img src="./QR%20CODE.png" alt="Bud app QR code" loading="lazy" />
+          </a>
         </div>
         <div class="cta-visual right reveal-item" aria-hidden="true">
           <div class="cta-polaroid">
@@ -1540,9 +1523,9 @@
           <h4>Product</h4>
           <ul>
             <li><a href="#features">How it works</a></li>
-            <li><a href="https://bud2-pink.vercel.app/">Community board</a></li>
-            <li><a href="https://bud2-pink.vercel.app/">Map &amp; sightings</a></li>
-            <li><a href="https://bud2-pink.vercel.app/">Report a pet</a></li>
+            <li><a href="https://bud-six.vercel.app/">Community board</a></li>
+            <li><a href="https://bud-six.vercel.app/">Map &amp; sightings</a></li>
+            <li><a href="https://bud-six.vercel.app/">Report a pet</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -1551,16 +1534,16 @@
             <li><a href="#pet-showcase">Stories</a></li>
             <li><a href="#features">For barangays</a></li>
             <li><a href="#features">For volunteers</a></li>
-            <li><a href="https://bud2-pink.vercel.app/">Browse reports</a></li>
+            <li><a href="https://bud-six.vercel.app/">Browse reports</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Get the app</h4>
           <ul>
-            <li><a href="https://bud2-pink.vercel.app/">Try Bud free</a></li>
-            <li><a href="https://bud2-pink.vercel.app/">Open in browser</a></li>
+            <li><a href="https://bud-six.vercel.app/">Try Bud free</a></li>
+            <li><a href="https://bud-six.vercel.app/">Open in browser</a></li>
           </ul>
-          <a href="https://bud2-pink.vercel.app/" class="footer-app-btn">Try the App →</a>
+          <a href="https://bud-six.vercel.app/" class="footer-app-btn">Try the App →</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -1579,9 +1562,18 @@
 
   <script>
     (function () {
-      var APP_URL = 'https://bud2-pink.vercel.app/';
+      var APP_URL = 'https://bud-six.vercel.app/';
+      var COMMUNITY_URL = APP_URL.replace(/\/$/, '') + '/community';
       var HEADLINE = 'Every lost pet deserves a way home.';
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      document.querySelectorAll('[data-app-link]').forEach(function (link) {
+        link.setAttribute('href', APP_URL);
+      });
+
+      document.querySelectorAll('[data-app-link-community]').forEach(function (link) {
+        link.setAttribute('href', COMMUNITY_URL);
+      });
 
       /* Navbar scroll */
       var navbar = document.getElementById('navbar');

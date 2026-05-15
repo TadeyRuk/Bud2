@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useUiStore } from "../stores/uiStore";
 import { usePetStore, type Pet } from "../stores/petStore";
@@ -15,6 +15,8 @@ import { useStatusHistoryStore } from "../stores/statusHistoryStore";
 import { PetActivityTimeline } from "../components/PetActivityTimeline/PetActivityTimeline";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 import { getFoundResolutionCopy } from "../lib/foundPetResolution";
+import { getOwnerPhoneDisplay } from "../lib/petOwnerContact";
+import { nearestBarangayDesks } from "../lib/barangayDesks";
 
 const PET_IMAGE_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -52,12 +54,19 @@ async function sharePet(pet: Pet) {
   }
 }
 
+function toTelHref(displayPhone: string): string {
+  const digits = displayPhone.replace(/\D/g, "");
+  const national = digits.startsWith("63") ? digits : `63${digits}`;
+  return `tel:+${national}`;
+}
+
 export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   const bodyScrollRef = useRef<HTMLDivElement>(null);
   const { position } = useUserLocation();
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const openSightingSheet = useUiStore((s) => s.openSightingSheet);
+  const userLatLng = useUiStore((s) => s.userLatLng);
   const recordContact = useContactTimelineStore((s) => s.recordContact);
   const petLatest = usePetStore((s) => s.pets.find((p) => p.id === pet.id)) ?? pet;
   const reuniteAt = useStatusHistoryStore((s) =>
@@ -66,10 +75,35 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
   const statusHistoryChanges = useStatusHistoryStore((s) => s.changes);
   const isOwner = isPetOwnerInUi(petLatest, user);
 
+  const [ownerPhoneVisible, setOwnerPhoneVisible] = useState(false);
+  const [barangayOpen, setBarangayOpen] = useState(false);
+  const [barangaySelectedId, setBarangaySelectedId] = useState<string | null>(null);
+
+  const ownerPhoneDisplay = useMemo(
+    () => getOwnerPhoneDisplay(petLatest),
+    [petLatest.id, petLatest.reporter_id, petLatest.owner_phone]
+  );
+
+  const closestDesks = useMemo(
+    () => nearestBarangayDesks(petLatest.lat, petLatest.lng, userLatLng, 5),
+    [petLatest.lat, petLatest.lng, userLatLng]
+  );
+
+  const selectedDesk = useMemo(
+    () => closestDesks.find((x) => x.desk.id === barangaySelectedId)?.desk ?? null,
+    [barangaySelectedId, closestDesks]
+  );
+
   const foundResolution = useMemo(() => {
     if (petLatest.status !== "FOUND") return null;
     return getFoundResolutionCopy(petLatest, statusHistoryChanges);
   }, [petLatest, statusHistoryChanges]);
+
+  useEffect(() => {
+    setOwnerPhoneVisible(false);
+    setBarangayOpen(false);
+    setBarangaySelectedId(null);
+  }, [petLatest.id]);
 
   useEffect(() => {
     const el = bodyScrollRef.current;
@@ -82,18 +116,15 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
     getPublicLocationLabel(petLatest, position, { suffix: false }),
   ].join(" · ");
 
-  async function handleContact(type: "owner" | "barangay") {
-    if (!user) {
-      onRequestAuth();
-      return;
-    }
+  async function logContactAttempt(type: "owner" | "barangay", label?: string) {
+    if (!user) return;
 
     if (supabaseConfigured) {
       const { error } = await supabase.from("contacts").insert({
         pet_id: petLatest.id,
         requester_id: user.id,
         contact_type: type,
-        message: "",
+        message: label ?? "",
       });
 
       if (error) {
@@ -117,18 +148,38 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
       }
     }
 
-    if (type === "barangay") {
-      showSuccess("Connecting to barangay desk…");
-    } else {
-      showSuccess("Contact request sent to the owner!");
-    }
-
     recordContact({
       petId: petLatest.id,
       contactType: type,
       byUserId: user.id,
       byUserName: profile?.display_name?.trim() || user.email || "Neighbor",
     });
+  }
+
+  function onContactOwnerClick() {
+    const first = !ownerPhoneVisible;
+    setOwnerPhoneVisible(true);
+    setBarangayOpen(false);
+    if (first) void logContactAttempt("owner");
+    if (first) {
+      showSuccess(
+        user
+          ? "Your outreach is logged. Guardian line is below."
+          : "Guardian line is below — share sightings to help reunite faster."
+      );
+    }
+  }
+
+  function onContactBarangayClick() {
+    setBarangayOpen((v) => !v);
+    setBarangaySelectedId(null);
+    setOwnerPhoneVisible(false);
+  }
+
+  function onPickBarangayDesk(id: string) {
+    setBarangaySelectedId(id);
+    void logContactAttempt("barangay", id);
+    showSuccess("Desk number is below.");
   }
 
   const glassFrame =
@@ -310,6 +361,123 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                 <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{petLatest.description}</p>
               </section>
 
+              {petLatest.status === "LOST" && !isOwner ? (
+                <div className="mt-5 space-y-3">
+                  <button
+                    type="button"
+                    onClick={onContactOwnerClick}
+                    className="h-14 w-full rounded-full bg-bud-primary font-body text-base font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
+                  >
+                    Contact Owner
+                  </button>
+
+                  {ownerPhoneVisible ? (
+                    <div className="rounded-[1.2rem] border border-bud-text/[0.1] bg-bud-surface-well/95 p-4 shadow-sm">
+                      <p className="font-body text-[10px] font-bold uppercase tracking-widest text-bud-text-muted">
+                        Guardian contact
+                      </p>
+                      <p className="mt-2 font-body text-xs leading-snug text-bud-text-muted">
+                        Demo numbers for prototyping — in production this syncs from the poster&apos;s verified profile.
+                      </p>
+                      <a
+                        href={toTelHref(ownerPhoneDisplay)}
+                        className="mt-3 block font-headline text-xl font-bold tabular-nums text-bud-accent underline-offset-2 hover:underline"
+                      >
+                        {ownerPhoneDisplay}
+                      </a>
+                      <button
+                        type="button"
+                        className="mt-3 w-full rounded-full border border-bud-text/[0.12] bg-white/90 py-2.5 font-body text-xs font-semibold text-bud-text"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(ownerPhoneDisplay).then(
+                            () => showSuccess("Number copied"),
+                            () => showError("Could not copy")
+                          );
+                        }}
+                      >
+                        Copy number
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={onContactBarangayClick}
+                    className="h-12 w-full rounded-full border-2 border-bud-accent bg-transparent font-body text-sm font-semibold text-bud-accent shadow-sm transition-transform active:scale-[0.98]"
+                  >
+                    {barangayOpen ? "Hide barangay list" : "Contact Barangay"}
+                  </button>
+
+                  {barangayOpen ? (
+                    <div className="space-y-3 rounded-[1.2rem] border border-bud-text/[0.1] bg-white/75 p-4 shadow-sm backdrop-blur-md">
+                      <div>
+                        <p className="font-body text-[10px] font-bold uppercase tracking-widest text-bud-text-muted">
+                          Closest help desks
+                        </p>
+                        <p className="mt-1 font-body text-xs leading-snug text-bud-text-muted">
+                          Community coordinates for this report&apos;s area (demo directory). Tap one for the official
+                          hotline.
+                        </p>
+                      </div>
+                      <ul className="space-y-2">
+                        {closestDesks.map(({ desk, distanceKm }) => {
+                          const active = barangaySelectedId === desk.id;
+                          return (
+                            <li key={desk.id}>
+                              <button
+                                type="button"
+                                onClick={() => onPickBarangayDesk(desk.id)}
+                                className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
+                                  active
+                                    ? "border-bud-primary bg-bud-primary/10 ring-2 ring-bud-primary/25"
+                                    : "border-bud-text/[0.08] bg-white/80 hover:border-bud-accent/40"
+                                }`}
+                              >
+                                <p className="font-body text-sm font-semibold text-bud-text">{desk.barangay}</p>
+                                <p className="mt-0.5 font-body text-xs text-bud-text-muted">
+                                  {desk.city} · ~{distanceKm} km
+                                </p>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+
+                      {selectedDesk ? (
+                        <div className="rounded-xl border border-bud-accent/30 bg-bud-surface-well/90 p-3">
+                          <p className="font-body text-[10px] font-bold uppercase tracking-widest text-bud-accent">
+                            Call this desk
+                          </p>
+                          <p className="mt-1 font-body text-sm font-semibold text-bud-text">{selectedDesk.barangay}</p>
+                          <a
+                            href={toTelHref(selectedDesk.phone)}
+                            className="mt-2 inline-block font-headline text-lg font-bold text-bud-accent"
+                          >
+                            {selectedDesk.phone}
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="font-body text-center text-xs text-bud-text-muted">Select a barangay to see its hotline.</p>
+                      )}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      if (!user) {
+                        onRequestAuth();
+                        return;
+                      }
+                      openSightingSheet(petLatest.id, e.currentTarget.getBoundingClientRect(), e.currentTarget);
+                    }}
+                    className="h-12 w-full rounded-full border border-bud-text/[0.12] bg-bud-surface-well/90 font-body text-sm font-semibold text-bud-text shadow-sm transition-transform active:scale-[0.98] motion-safe:hover:bg-bud-surface-well"
+                  >
+                    Report a sighting
+                  </button>
+                </div>
+              ) : null}
+
               <PetActivityTimeline petId={petLatest.id} petName={petLatest.name} />
 
               <div className="mt-6 space-y-3">
@@ -318,42 +486,6 @@ export function PetDetail({ pet, onBack, onRequestAuth }: PetDetailProps) {
                     <h3 className="font-headline text-base font-bold text-bud-accent">{foundResolution.headline}</h3>
                     <p className="font-body mt-2 text-sm leading-relaxed text-bud-text-muted">{foundResolution.body}</p>
                   </div>
-                ) : null}
-
-                {petLatest.status === "LOST" && !isOwner ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => void handleContact("owner")}
-                      className="h-14 w-full rounded-full bg-bud-primary font-body text-base font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_10px_28px_rgba(139,58,21,0.38)] transition-transform active:scale-[0.98] motion-safe:hover:brightness-[1.05]"
-                    >
-                      Contact Owner
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleContact("barangay")}
-                      className="h-12 w-full rounded-full border-2 border-bud-accent bg-transparent font-body text-sm font-semibold text-bud-accent shadow-sm transition-transform active:scale-[0.98]"
-                    >
-                      Contact Barangay
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        if (!user) {
-                          onRequestAuth();
-                          return;
-                        }
-                        openSightingSheet(
-                          petLatest.id,
-                          e.currentTarget.getBoundingClientRect(),
-                          e.currentTarget
-                        );
-                      }}
-                      className="h-12 w-full rounded-full border border-bud-text/[0.12] bg-bud-surface-well/90 font-body text-sm font-semibold text-bud-text shadow-sm transition-transform active:scale-[0.98] motion-safe:hover:bg-bud-surface-well"
-                    >
-                      Report a sighting
-                    </button>
-                  </>
                 ) : null}
 
                 {isOwner ? <OwnerPetActions pet={petLatest} variant="detail" onAfterRemove={onBack} /> : null}

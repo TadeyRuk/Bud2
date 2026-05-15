@@ -229,15 +229,15 @@ export function SightingSheet() {
   };
 
   const runSubmit = useCallback(async () => {
-    if (!displayPet || !user) return;
+    if (!displayPet) return;
 
     setSubmitPhase("loading");
     if (!reduceMotion) setShowExitBubbles(true);
 
-    const reporterId = user.id;
+    const reporterId = user?.id ?? DEMO_REPORTER_ID;
     const reporterName =
       profile?.display_name?.trim() ||
-      user.email ||
+      user?.email ||
       getOnboardingProfile()?.name?.trim() ||
       "Neighbor";
 
@@ -285,7 +285,7 @@ export function SightingSheet() {
       photoDataUrl,
     });
 
-    if (supabaseConfigured) {
+    if (supabaseConfigured && user) {
       const { error } = await supabase.from("sightings").insert({
         pet_id: displayPet.id,
         reporter_id: user.id,
@@ -319,14 +319,16 @@ export function SightingSheet() {
       }
     }
 
-    addLocalNotification({
-      user_id: user.id,
-      type: "sighting",
-      title: "Sighting recorded",
-      body: `Your tip for ${displayPet.name} is live on the timeline.`,
-      pet_id: displayPet.id,
-      read: false,
-    });
+    if (user) {
+      addLocalNotification({
+        user_id: user.id,
+        type: "sighting",
+        title: "Sighting recorded",
+        body: `Your tip for ${displayPet.name} is live on the timeline.`,
+        pet_id: displayPet.id,
+        read: false,
+      });
+    }
 
     setSightingPulsePetId(displayPet.id);
     window.setTimeout(() => setSightingPulsePetId(null), 4000);
@@ -368,6 +370,7 @@ export function SightingSheet() {
     moods,
     photoFile,
     pinLat,
+    pinLat,
     pinLng,
     profile?.display_name,
     reduceMotion,
@@ -376,7 +379,7 @@ export function SightingSheet() {
     when,
   ]);
 
-  if (!displayPet || !user) return null;
+  if (!displayPet) return null;
   if (!open && !leaving) return null;
 
   const avatarSrc = displayPet.image_url || PET_IMAGE_PLACEHOLDER;
@@ -474,7 +477,9 @@ export function SightingSheet() {
                   {displayPet.status}
                 </span>
               </div>
-              <p className="font-body text-xs text-bud-text-muted">Share a sighting</p>
+                <p className="font-body text-xs text-bud-text-muted">
+                  {user ? "Share a sighting for this pet" : "Share a sighting (saved on this device)"}
+                </p>
             </div>
             <div className="flex shrink-0 gap-1.5">
               {[1, 2, 3].map((s) => (

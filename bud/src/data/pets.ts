@@ -245,6 +245,8 @@ export const DEMO_PETS: LegacyPet[] = SEED_SLOTS.map((slot, index) => {
   const location = `${report.landmark}, ${report.city}`;
   const [lat, lng] = scatterFromAnchor(report.lat, report.lng, index + 1, slot.ring);
 
+  const n = `9${String(100000000 + ((index * 9841) % 899999999)).padStart(9, "0").slice(0, 9)}`;
+  const ownerContact = `+63 ${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6, 10)}`;
   return {
     ...template,
     id: `nationwide-${String(index + 1).padStart(3, "0")}`,
@@ -257,6 +259,8 @@ export const DEMO_PETS: LegacyPet[] = SEED_SLOTS.map((slot, index) => {
       `${status === "FOUND" ? "found near" : "last seen near"} ${location}.`,
     lat,
     lng,
+    ownerName: `${template.name}'s guardian`,
+    ownerContact,
   };
 });
 

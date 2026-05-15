@@ -7,9 +7,14 @@ type AuthState = {
   user: User | null;
   profile: Profile | null;
   initialized: boolean;
+  loading: boolean;
   fetchProfile: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName?: string
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -17,6 +22,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
   initialized: false,
+  loading: false,
 
   fetchProfile: async () => {
     const uid = get().user?.id;
@@ -29,14 +35,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signIn: async (email, password) => {
     if (!supabaseConfigured) return { error: "Database is not configured." };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+    set({ loading: true });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error?.message ?? null };
+    } finally {
+      set({ loading: false });
+    }
   },
 
-  signUp: async (email, password) => {
+  signUp: async (email, password, displayName) => {
     if (!supabaseConfigured) return { error: "Database is not configured." };
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error: error?.message ?? null };
+    set({ loading: true });
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: displayName?.trim()
+          ? { data: { display_name: displayName.trim() } }
+          : undefined,
+      });
+      return { error: error?.message ?? null };
+    } finally {
+      set({ loading: false });
+    }
   },
 
   signOut: async () => {
